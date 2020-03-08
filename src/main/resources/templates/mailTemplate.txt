@@ -1,0 +1,20 @@
+Epostadresse til distributøren: <<distributør>>
+
+Kopi: <<senderEpost>>
+
+Emne: Avis: <<avis>> - Navn: <<mottakerNavn>> - Adresse: <<adresse>>
+
+<<innhold>>
+
+Svar til <<senderEpost>>
+
+Avis: <<avis>>
+Navn: <<navn>>
+Adresse: <<adresse>>
+Buntnummer: <<buntNummer>>
+
+Beskjed/kommentar:
+<<kommentar>>
+
+Mvh
+<<senderFornavn>>

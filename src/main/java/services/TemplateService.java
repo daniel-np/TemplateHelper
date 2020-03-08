@@ -15,7 +15,7 @@ public class TemplateService {
 
     }
 
-    public EmailTemplate parseEmailTemplate(String path) {
+    public EmailTemplate parseEmailTemplateFile(String path) {
         File templateFile = new File(path);
         String fileName = templateFile.getName();
 
