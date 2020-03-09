@@ -69,7 +69,7 @@ public class TemplateService {
     private HashMap<String, TemplateTextField> getTemplateFields(TemplateFile templateFile) throws FileNotFoundException {
         Scanner scan = new Scanner(templateFile);
         HashMap<String, TemplateTextField> templateTextFieldMap = new HashMap<>();
-        scan.findAll(Pattern.compile("<{2}[a-zæøåA-ZÆØÅ0-9]+>{2}"))
+        scan.findAll(Pattern.compile("<{2}[a-zæøåA-ZÆØÅ0-9 ]+>{2}"))
                 .forEach(item -> {
                     if(templateTextFieldMap.get(item.group()) == null) {
                         TemplateTextField templateTextField = new TemplateTextField(
