@@ -1,6 +1,7 @@
 package services;
 
 import model.EmailTemplate;
+import model.TemplateFile;
 import model.TemplateTextField;
 
 import java.io.File;
@@ -15,7 +16,7 @@ public class TemplateService {
     }
 
     public EmailTemplate parseEmailTemplateFromPath(String path) {
-        File templateFile = new File(path);
+        TemplateFile templateFile = new TemplateFile(path);
         String fileName = templateFile.getName();
 
         try {
@@ -28,7 +29,7 @@ public class TemplateService {
         return null;
     }
 
-    public EmailTemplate parseEmailTemplateFile(File file) {
+    public EmailTemplate parseEmailTemplateFile(TemplateFile file) {
         try {
             String emailTemplateText = createEmailTemplateText(file);
             HashMap<String, TemplateTextField> templateTextFieldMap = getTemplateFields(file);
@@ -39,12 +40,12 @@ public class TemplateService {
         return null;
     }
 
-    public ArrayList<File> listTemplateFiles(File folder) {
-        ArrayList<File> templateFileList = new ArrayList<>();
+    public ArrayList<TemplateFile> listTemplateFiles(File folder) {
+        ArrayList<TemplateFile> templateFileList = new ArrayList<>();
         for (final File entryFile : Objects.requireNonNull(folder.listFiles())) {
             Optional<String> optExt = getFileExtensionFromName(entryFile.getName());
             if (optExt.isPresent() && optExt.get().equals("template")) {
-                templateFileList.add(entryFile);
+                templateFileList.add(new TemplateFile(entryFile.getPath()));
             }
         }
         return templateFileList;
@@ -65,7 +66,7 @@ public class TemplateService {
                 templateTextFieldMap);
     }
 
-    private HashMap<String, TemplateTextField> getTemplateFields(File templateFile) throws FileNotFoundException {
+    private HashMap<String, TemplateTextField> getTemplateFields(TemplateFile templateFile) throws FileNotFoundException {
         Scanner scan = new Scanner(templateFile);
         HashMap<String, TemplateTextField> templateTextFieldMap = new HashMap<>();
         scan.findAll(Pattern.compile("<{2}[a-zæøåA-ZÆØÅ0-9]+>{2}"))
@@ -83,7 +84,7 @@ public class TemplateService {
         return templateTextFieldMap;
     }
 
-    private String createEmailTemplateText(File templateFile) throws FileNotFoundException {
+    private String createEmailTemplateText(TemplateFile templateFile) throws FileNotFoundException {
         Scanner scan = new Scanner(templateFile);
         StringBuilder emailStringBuilder = new StringBuilder();
         while (scan.hasNext()) {
