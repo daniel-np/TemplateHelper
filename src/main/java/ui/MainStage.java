@@ -8,6 +8,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -17,6 +18,7 @@ import model.EmailTemplate;
 import model.EmailTemplateModel;
 import model.TemplateFile;
 import services.TemplateService;
+import javafx.scene.input.Clipboard;
 
 public class MainStage extends Application {
     private TemplateService templateService;
@@ -24,6 +26,8 @@ public class MainStage extends Application {
     private ChoiceBox<TemplateFile> templateChoiceBox;
     private ObservableList<Node> templateFieldList;
     private TextArea outputTextArea;
+    final Clipboard clipboard = Clipboard.getSystemClipboard();
+    final ClipboardContent clipboardContent = new ClipboardContent();
 
 
     public static void main(String[] args) {
@@ -53,7 +57,14 @@ public class MainStage extends Application {
         Label outputTextAreaLabel = new Label("Output text area");
 
         Button copyTextButton = new Button("Copy text");
-        Button clearTextButton = new Button("Clear text");
+        copyTextButton.setOnAction(e->{
+            clipboardContent.putString(outputTextArea.getText());
+            clipboard.setContent(clipboardContent);
+        });
+        Button resetTextButton = new Button("Reset text");
+        resetTextButton.setOnAction(e->{
+
+        });
 
         GridPane gridPane = new GridPane();
         gridPane.setAlignment(Pos.TOP_RIGHT);
@@ -62,7 +73,7 @@ public class MainStage extends Application {
         gridPane.setPadding(new Insets(10,10,10,10));
         gridPane.add(outputTextAreaLabel,0,0);
         gridPane.add(copyTextButton, 3, 0);
-        gridPane.add(clearTextButton, 4, 0);
+        gridPane.add(resetTextButton, 4, 0);
 
         outputTextArea = new TextArea();
         outputTextAreaLabel.setLabelFor(outputTextArea);
@@ -133,6 +144,9 @@ public class MainStage extends Application {
             gridPane.add(new Label(v.getCleanName()), 0,0);
 
             TextField textField = new TextField();
+            textField.setOnAction(e->{
+                outputTextArea.setText(outputTextArea.getText().replaceAll(k, textField.getText()));
+            });
             textField.setPromptText(v.getCleanName());
             gridPane.add(textField,0,1);
             templateFieldList.add(gridPane);
