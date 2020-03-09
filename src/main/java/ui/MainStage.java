@@ -40,6 +40,8 @@ public class MainStage extends Application {
         ObservableList<TemplateFile> templateFileObservableList =
                 emailTemplateModel.loadTemplateFilesFromDirectory(templateDirFile);
         ChoiceBox<TemplateFile> templateChoiceBox = new ChoiceBox<>(templateFileObservableList);
+        templateChoiceBox.setValue(templateChoiceBox.getItems().get(0));
+
         HBox hBox = new HBox(templateChoiceBoxLabel,templateChoiceBox);
 
         return new Scene(hBox);
