@@ -53,4 +53,8 @@ public class TemplateTextField {
         return templateTextField.substring(2,templateTextField.length()-2) +
                 ": " + sb.toString().substring(0, sb.toString().length()-2);
     }
+
+    public String getCleanName() {
+        return templateTextField.substring(2,templateTextField.length()-2);
+    }
 }
