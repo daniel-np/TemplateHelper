@@ -4,8 +4,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import services.TemplateService;
 
-import java.io.File;
-
 public class EmailTemplateModel {
 
     private TemplateService templateService;

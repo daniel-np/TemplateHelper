@@ -10,6 +10,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import model.EmailTemplate;
@@ -22,6 +23,7 @@ public class MainStage extends Application {
     private EmailTemplateModel emailTemplateModel;
     private ChoiceBox<TemplateFile> templateChoiceBox;
     private ObservableList<Node> templateFieldList;
+    private TextArea outputTextArea;
 
 
     public static void main(String[] args) {
@@ -43,7 +45,32 @@ public class MainStage extends Application {
 
     private Scene mainScene() {
         VBox vBox = new VBox(createTemplateChooseGrid(), createTemplateFieldLayout());
-        return new Scene(vBox);
+        HBox hBox = new HBox(vBox, outputField());
+        return new Scene(hBox);
+    }
+
+    private Node outputField() {
+        Label outputTextAreaLabel = new Label("Output text area");
+
+        Button copyTextButton = new Button("Copy text");
+        Button clearTextButton = new Button("Clear text");
+
+        GridPane gridPane = new GridPane();
+        gridPane.setAlignment(Pos.TOP_RIGHT);
+        gridPane.setVgap(10);
+        gridPane.setHgap(10);
+        gridPane.setPadding(new Insets(10,10,10,10));
+        gridPane.add(outputTextAreaLabel,0,0);
+        gridPane.add(copyTextButton, 3, 0);
+        gridPane.add(clearTextButton, 4, 0);
+
+        outputTextArea = new TextArea();
+        outputTextAreaLabel.setLabelFor(outputTextArea);
+        outputTextArea.setPrefWidth(450);
+        outputTextArea.setPrefHeight(400);
+        outputTextArea.setEditable(false);
+
+        return new VBox(gridPane, outputTextArea);
     }
 
     private Node createTemplateChooseGrid() {
@@ -58,15 +85,14 @@ public class MainStage extends Application {
         Button loadTemplateButton = new Button("Load template");
         loadTemplateButton.setOnAction(e->{
             EmailTemplate emailTemplate = emailTemplateModel.loadTemplateFromFile(templateChoiceBox.getValue());
+            outputTextArea.setText(emailTemplate.getTemplateText());
             addFieldsToTemplateFieldLayout(emailTemplate);
         });
 
         GridPane gridPane = new GridPane();
-        //gridPane.setGridLinesVisible(true);
         gridPane.setVgap(10);
         gridPane.setHgap(10);
         gridPane.setPadding(new Insets(10,10,10,10));
-        //HBox hBox = new HBox(templateChoiceBoxLabel,templateChoiceBox);
 
         gridPane.add(templateChoiceBoxLabel, 0,0);
         gridPane.add(templateChoiceBox, 1,0);
