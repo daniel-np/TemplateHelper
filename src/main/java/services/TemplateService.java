@@ -17,16 +17,7 @@ public class TemplateService {
 
     public EmailTemplate parseEmailTemplateFromPath(String path) {
         TemplateFile templateFile = new TemplateFile(path);
-        String fileName = templateFile.getName();
-
-        try {
-            String emailTemplateText = createEmailTemplateText(templateFile);
-            HashMap<String, TemplateTextField> templateTextFieldMap = getTemplateFields(templateFile);
-            return createEmailTemplate(path, fileName, emailTemplateText, templateTextFieldMap);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return parseEmailTemplateFile(templateFile);
     }
 
     public EmailTemplate parseEmailTemplateFile(TemplateFile file) {
@@ -53,8 +44,8 @@ public class TemplateService {
 
     private Optional<String> getFileExtensionFromName(String fileName) {
         return Optional.ofNullable(fileName)
-                .filter(f->f.contains("."))
-                .map(f->f.substring(fileName.lastIndexOf(".")+1));
+                .filter(f -> f.contains("."))
+                .map(f -> f.substring(fileName.lastIndexOf(".") + 1));
 
     }
 
@@ -71,9 +62,9 @@ public class TemplateService {
         HashMap<String, TemplateTextField> templateTextFieldMap = new HashMap<>();
         scan.findAll(Pattern.compile("<{2}[a-zæøåA-ZÆØÅ0-9 ]+>{2}"))
                 .forEach(item -> {
-                    if(templateTextFieldMap.get(item.group()) == null) {
+                    if (templateTextFieldMap.get(item.group()) == null) {
                         TemplateTextField templateTextField = new TemplateTextField(
-                                item.end()-item.start(),
+                                item.end() - item.start(),
                                 item.group());
                         templateTextField.addLocation(item.start());
                         templateTextFieldMap.put(item.group(), templateTextField);
