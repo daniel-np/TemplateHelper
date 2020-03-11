@@ -3,14 +3,11 @@ package services;
 import model.EmailTemplate;
 import model.TemplateFile;
 import model.TemplateTextField;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class TemplateService {
 
@@ -60,7 +57,7 @@ public class TemplateService {
                 templateTextFieldMap);
     }
 
-    private HashMap<String, TemplateTextField> parseTemplateFields(String templateText) throws FileNotFoundException {
+    private HashMap<String, TemplateTextField> parseTemplateFields(String templateText) {
         Scanner scan = new Scanner(templateText);
         HashMap<String, TemplateTextField> templateTextFieldMap = new HashMap<>();
         scan.findAll(Pattern.compile("<{2}[a-zæøåA-ZÆØÅ0-9 ]+>{2}"))
@@ -86,14 +83,14 @@ public class TemplateService {
         if(nextLine.equals("#def")) {
             nextLine = scan.nextLine();
             while (scan.hasNextLine() && !nextLine.equals("#end")){
-                choices = parsePropDefinitions(nextLine);
+                choices = parseChoiceDefinitions(nextLine);
                 choices.forEach(System.out::println);
                 nextLine = scan.nextLine();
             }
         }
     }
 
-    private List<String> parsePropDefinitions(String line) {
+    private List<String> parseChoiceDefinitions(String line) {
         Scanner scan = new Scanner(line);
         String name = scan.findInLine(Pattern.compile("<{2}[a-zæøåA-ZÆØÅ0-9 ]+>{2}"));
         List<String> choices = new ArrayList<>();
