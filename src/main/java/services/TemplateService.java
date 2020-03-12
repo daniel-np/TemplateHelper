@@ -27,7 +27,7 @@ public class TemplateService {
         // Handle fields - standard, large, permanent, multi-fields
         Map<String, TemplateTextField> templateTextFieldMap = parseTemplateFields(cleanTemplateText, choiceMap);
         // TODO: Permanent fields
-        EmailTemplate emailTemplate = new EmailTemplate(file.getPath(), file.getName(), templateText, templateTextFieldMap);
+        EmailTemplate emailTemplate = new EmailTemplate(file.getPath(), file.getName(), cleanTemplateText, templateTextFieldMap);
         emailTemplate.setChoiceDefinitions(choiceMap);
         return emailTemplate;
     }
@@ -42,7 +42,6 @@ public class TemplateService {
         // Permanent fields
 
         // Multi-fields
-        templateTextFieldMap.forEach((k,v)-> System.out.println(v.toString()));
 
         return templateTextFieldMap;
     }
