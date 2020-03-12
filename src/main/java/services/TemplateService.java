@@ -26,6 +26,7 @@ public class TemplateService {
         }
         // Handle fields - standard, large, permanent, multi-fields
         Map<String, TemplateTextField> templateTextFieldMap = parseTemplateFields(cleanTemplateText, choiceMap);
+        // TODO: Handle fields - multi-fields
         // TODO: Permanent fields
         EmailTemplate emailTemplate = new EmailTemplate(file.getPath(), file.getName(), cleanTemplateText, templateTextFieldMap);
         emailTemplate.setChoiceDefinitions(choiceMap);
@@ -38,15 +39,32 @@ public class TemplateService {
         // Standard fields & Choice fields
         parseStandardAndChoiceFields(templateText, choiceDefinitions);
         // Large fields
-
+        parseLargeFields(templateText);
         // Permanent fields
 
         // Multi-fields
 
         return templateTextFieldMap;
     }
+    private void parseLargeFields(String templateText) {
+        Scanner scan = new Scanner(templateText);
 
-    private void parseStandardAndChoiceFields(String templateText, Map<String, List<String>> choiceDefinitions) {
+        scan.findAll(Pattern.compile("<![a-zæøåA-ZÆØÅ0-9]+!>"))
+                .forEach(item -> {
+                    if (templateTextFieldMap.get(item.group()) == null) {
+                        TemplateTextField templateTextField = new TemplateTextField(
+                                item.end() - item.start(),
+                                item.group(),
+                                TemplateTextField.FieldType.LARGE_FIELD
+                        );
+                        templateTextField.addLocation(item.start());
+                        templateTextFieldMap.put(item.group(), templateTextField);
+                    }
+                    templateTextFieldMap.get(item.group()).addLocation(item.start());
+                });
+    }
+
+        private void parseStandardAndChoiceFields(String templateText, Map<String, List<String>> choiceDefinitions) {
         Scanner scan = new Scanner(templateText);
 
         scan.findAll(Pattern.compile("<{2}[a-zæøåA-ZÆØÅ0-9 ]+>{2}"))

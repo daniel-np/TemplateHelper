@@ -78,8 +78,8 @@ public class MainStage extends Application {
 
         outputTextArea = new TextArea();
         outputTextAreaLabel.setLabelFor(outputTextArea);
-        outputTextArea.setPrefWidth(450);
-        outputTextArea.setPrefHeight(400);
+        outputTextArea.setPrefWidth(500);
+        outputTextArea.setPrefHeight(510);
         outputTextArea.setEditable(false);
 
         return new VBox(gridPane, outputTextArea);
@@ -151,8 +151,9 @@ public class MainStage extends Application {
             for (int i = 0; i < cleanNameArray.length; i++) {
                 cleanNameArray[i] = StringUtils.capitalize(cleanNameArray[i]);
             }
+            String cleanName = String.join(" ", cleanNameArray);
 
-            gridPane.add(new Label(String.join(" ", cleanNameArray)), 0, 0);
+            gridPane.add(new Label(cleanName), 0, 0);
 
             if (v.getFieldType().equals(TemplateTextField.FieldType.STANDARD_FIELD)) {
                 TextField textField = new TextField();
@@ -160,7 +161,7 @@ public class MainStage extends Application {
                     v.setTemplateTextField(textField.getText());
                     outputTextArea.setText(outputTextArea.getText().replaceAll(k, textField.getText()));
                 }));
-                textField.setPromptText(v.getCleanName());
+                textField.setPromptText(cleanName);
                 gridPane.add(textField, 0, 1);
                 templateFieldList.add(gridPane);
             } else if (v.getFieldType().equals(TemplateTextField.FieldType.CHOICE_FIELD)) {
@@ -176,6 +177,33 @@ public class MainStage extends Application {
                 }));
 
                 templateFieldList.add(templateListCounter[0]++, gridPane);
+
+            } else if (v.getFieldType().equals(TemplateTextField.FieldType.LARGE_FIELD)) {
+                TextArea textArea = new TextArea();
+                textArea.setPromptText(cleanName);
+                textArea.setPrefWidth(450);
+                textArea.setPadding(new Insets(0,0,0,5));
+
+                Button submitButton = new Button("Submit");
+                submitButton.setOnAction(e->{
+                    v.setTemplateTextField(textArea.getText());
+                    outputTextArea.setText(outputTextArea.getText().replaceAll(k, textArea.getText()));
+                });
+                gridPane.add(submitButton, 0,3);
+                if (templateListCounter[0]%2 == 0) {
+                    gridPane.setMaxWidth(500);
+                    gridPane.add(textArea,0,1, 2,2);
+                    templateFieldList.add(templateListCounter[0]++,gridPane);
+                    templateFieldList.add(templateListCounter[0]++,new GridPane());
+                } else {
+                    gridPane.setMaxWidth(500);
+                    gridPane.setPrefWidth(500);
+                    gridPane.add(textArea,0,1,2,2);
+                    templateFieldList.add(templateListCounter[0]++,new GridPane());
+                    templateFieldList.add(templateListCounter[0]++,gridPane);
+                    templateFieldList.add(templateListCounter[0]++,new GridPane());
+                }
+
             }
 
         });
