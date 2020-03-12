@@ -1,6 +1,7 @@
 package ui;
 
 import javafx.application.Application;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -17,6 +18,8 @@ import javafx.stage.Stage;
 import model.EmailTemplate;
 import model.EmailTemplateModel;
 import model.TemplateFile;
+import model.TemplateTextField;
+import org.apache.commons.lang3.StringUtils;
 import services.TemplateService;
 import javafx.scene.input.Clipboard;
 
@@ -26,8 +29,8 @@ public class MainStage extends Application {
     private ChoiceBox<TemplateFile> templateChoiceBox;
     private ObservableList<Node> templateFieldList;
     private TextArea outputTextArea;
-    final Clipboard clipboard = Clipboard.getSystemClipboard();
-    final ClipboardContent clipboardContent = new ClipboardContent();
+    private final Clipboard clipboard = Clipboard.getSystemClipboard();
+    private final ClipboardContent clipboardContent = new ClipboardContent();
 
 
     public static void main(String[] args) {
@@ -57,21 +60,19 @@ public class MainStage extends Application {
         Label outputTextAreaLabel = new Label("Output text area");
 
         Button copyTextButton = new Button("Copy text");
-        copyTextButton.setOnAction(e->{
+        copyTextButton.setOnAction(e -> {
             clipboardContent.putString(outputTextArea.getText());
             clipboard.setContent(clipboardContent);
         });
         Button resetTextButton = new Button("Reset text");
-        resetTextButton.setOnAction(e->{
-
-        });
+        resetTextButton.setOnAction(e -> outputTextArea.setText(emailTemplateModel.getCurrentTemplate().getTemplateText()));
 
         GridPane gridPane = new GridPane();
         gridPane.setAlignment(Pos.TOP_RIGHT);
         gridPane.setVgap(10);
         gridPane.setHgap(10);
-        gridPane.setPadding(new Insets(10,10,10,10));
-        gridPane.add(outputTextAreaLabel,0,0);
+        gridPane.setPadding(new Insets(10, 10, 10, 10));
+        gridPane.add(outputTextAreaLabel, 0, 0);
         gridPane.add(copyTextButton, 3, 0);
         gridPane.add(resetTextButton, 4, 0);
 
@@ -94,7 +95,7 @@ public class MainStage extends Application {
         templateChoiceBox.setValue(templateChoiceBox.getItems().get(0));
 
         Button loadTemplateButton = new Button("Load template");
-        loadTemplateButton.setOnAction(e->{
+        loadTemplateButton.setOnAction(e -> {
             EmailTemplate emailTemplate = emailTemplateModel.loadTemplateFromFile(templateChoiceBox.getValue());
             outputTextArea.setText(emailTemplate.getTemplateText());
             addFieldsToTemplateFieldLayout(emailTemplate);
@@ -103,10 +104,10 @@ public class MainStage extends Application {
         GridPane gridPane = new GridPane();
         gridPane.setVgap(10);
         gridPane.setHgap(10);
-        gridPane.setPadding(new Insets(10,10,10,10));
+        gridPane.setPadding(new Insets(10, 10, 10, 10));
 
-        gridPane.add(templateChoiceBoxLabel, 0,0);
-        gridPane.add(templateChoiceBox, 1,0);
+        gridPane.add(templateChoiceBoxLabel, 0, 0);
+        gridPane.add(templateChoiceBox, 1, 0);
         gridPane.add(loadTemplateButton, 2, 0);
         return gridPane;
     }
@@ -120,36 +121,63 @@ public class MainStage extends Application {
         templateFieldLayout.maxHeight(Double.NEGATIVE_INFINITY);
         templateFieldLayout.maxWidth(Double.POSITIVE_INFINITY);
         templateFieldLayout.minHeight(Double.NEGATIVE_INFINITY);
-        templateFieldLayout.minWidth(400);
+        templateFieldLayout.minWidth(500);
 
         ScrollPane scrollPane = new ScrollPane(templateFieldLayout);
         scrollPane.setFitToWidth(true);
         scrollPane.hbarPolicyProperty().setValue(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.vbarPolicyProperty().setValue(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scrollPane.setPrefHeight(410);
-        scrollPane.maxHeight(410);
-        scrollPane.setPrefWidth(400);
-        scrollPane.maxWidth(400);
+        scrollPane.setPrefHeight(510);
+        scrollPane.maxHeight(510);
+        scrollPane.setPrefWidth(500);
+        scrollPane.maxWidth(500);
         return scrollPane;
     }
 
     private void addFieldsToTemplateFieldLayout(EmailTemplate emailTemplate) {
         templateFieldList.removeAll();
         templateFieldList.clear();
-        emailTemplate.getTemplateFields().forEach((k,v) -> {
+
+        int[] templateListCounter = {0};
+        emailTemplate.getTemplateFields().forEach((k, v) -> {
             GridPane gridPane = new GridPane();
             gridPane.setVgap(5);
             gridPane.setHgap(5);
-            gridPane.setPadding(new Insets(5,5,5,5));
-            gridPane.add(new Label(v.getCleanName()), 0,0);
+            gridPane.setMinWidth(240);
+            gridPane.setMaxWidth(250);
+            gridPane.setPadding(new Insets(5, 5, 5, 5));
+            // Cleaning up name
+            String[] cleanNameArray = StringUtils.splitByCharacterTypeCamelCase(v.getCleanName());
+            for (int i = 0; i < cleanNameArray.length; i++) {
+                cleanNameArray[i] = StringUtils.capitalize(cleanNameArray[i]);
+            }
 
-            TextField textField = new TextField();
-            textField.setOnAction(e->{
-                outputTextArea.setText(outputTextArea.getText().replaceAll(k, textField.getText()));
-            });
-            textField.setPromptText(v.getCleanName());
-            gridPane.add(textField,0,1);
-            templateFieldList.add(gridPane);
+            gridPane.add(new Label(String.join(" ", cleanNameArray)), 0, 0);
+
+            if (v.getFieldType().equals(TemplateTextField.FieldType.STANDARD_FIELD)) {
+                TextField textField = new TextField();
+                textField.setOnAction(e -> templateFieldList.forEach((n) -> {
+                    v.setTemplateTextField(textField.getText());
+                    outputTextArea.setText(outputTextArea.getText().replaceAll(k, textField.getText()));
+                }));
+                textField.setPromptText(v.getCleanName());
+                gridPane.add(textField, 0, 1);
+                templateFieldList.add(gridPane);
+            } else if (v.getFieldType().equals(TemplateTextField.FieldType.CHOICE_FIELD)) {
+
+                ObservableList<String> templateFileObservableList = FXCollections.observableList(v.getChoices());
+                ChoiceBox<String> choiceBox = new ChoiceBox<>(templateFileObservableList);
+                choiceBox.setValue(choiceBox.getItems().get(0));
+                gridPane.add(choiceBox, 0, 1);
+
+                choiceBox.getSelectionModel().selectedIndexProperty().addListener(l-> templateFieldList.forEach((n) -> {
+                    v.setTemplateTextField(choiceBox.getValue());
+                    outputTextArea.setText(outputTextArea.getText().replaceAll(k, choiceBox.getValue()));
+                }));
+
+                templateFieldList.add(templateListCounter[0]++, gridPane);
+            }
+
         });
     }
 }

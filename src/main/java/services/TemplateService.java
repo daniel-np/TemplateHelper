@@ -15,20 +15,136 @@ public class TemplateService {
 
     }
 
-    public EmailTemplate parseEmailTemplateFromPath(String path) {
-        TemplateFile templateFile = new TemplateFile(path);
-        return parseEmailTemplateFile(templateFile);
+    public EmailTemplate parseEmailTemplateFile(TemplateFile file) throws FileNotFoundException {
+
+        String templateText = createEmailTemplateText(file);
+        String cleanTemplateText = cleanTemplateText(templateText);
+        // Choice definitions
+        Map<String, List<String>> choiceMap = new HashMap<>();
+        if(hasDefinitions(templateText)) {
+            choiceMap = getDefinitionsFromTemplateText(templateText);
+        }
+        // Handle fields - standard, large, permanent, multi-fields
+        Map<String, TemplateTextField> templateTextFieldMap = parseTemplateFields(cleanTemplateText, choiceMap);
+        // TODO: Permanent fields
+        EmailTemplate emailTemplate = new EmailTemplate(file.getPath(), file.getName(), templateText, templateTextFieldMap);
+        emailTemplate.setChoiceDefinitions(choiceMap);
+        return emailTemplate;
     }
 
-    public EmailTemplate parseEmailTemplateFile(TemplateFile file) {
-        try {
-            String emailTemplateText = createEmailTemplateText(file);
-            HashMap<String, TemplateTextField> templateTextFieldMap = parseTemplateFields(emailTemplateText);
-            return createEmailTemplate(file.getPath(), file.getName(), emailTemplateText, templateTextFieldMap);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+    private Map<String, TemplateTextField> templateTextFieldMap = new HashMap<>();
+    private Map<String, TemplateTextField> parseTemplateFields(String templateText, Map<String, List<String>> choiceDefinitions) {
+
+        // Standard fields & Choice fields
+        parseStandardAndChoiceFields(templateText, choiceDefinitions);
+        // Large fields
+
+        // Permanent fields
+
+        // Multi-fields
+        templateTextFieldMap.forEach((k,v)-> System.out.println(v.toString()));
+
+        return templateTextFieldMap;
+    }
+
+    private void parseStandardAndChoiceFields(String templateText, Map<String, List<String>> choiceDefinitions) {
+        Scanner scan = new Scanner(templateText);
+
+        scan.findAll(Pattern.compile("<{2}[a-zæøåA-ZÆØÅ0-9 ]+>{2}"))
+                .forEach(item -> {
+                    if (choiceDefinitions.containsKey(item.group())) {
+                        if(Objects.isNull(templateTextFieldMap.get(item.group()))){
+                            TemplateTextField templateTextField = new TemplateTextField(
+                                    item.end() - item.start(),
+                                    item.group(),
+                                    TemplateTextField.FieldType.CHOICE_FIELD,
+                                    choiceDefinitions.get(item.group()));
+                            templateTextFieldMap.put(item.group(), templateTextField);
+                        }
+                    } else if(templateTextFieldMap.get(item.group()) == null){
+                        TemplateTextField templateTextField = new TemplateTextField(
+                                item.end() - item.start(),
+                                item.group(),
+                                TemplateTextField.FieldType.STANDARD_FIELD);
+                        templateTextField.addLocation(item.start());
+                        templateTextFieldMap.put(item.group(), templateTextField);
+                    }
+                    templateTextFieldMap.get(item.group()).addLocation(item.start());
+                });
+        scan.close();
+    }
+
+    private boolean hasDefinitions(String templateText) {
+        Scanner scan = new Scanner(templateText);
+        boolean hasDefinition = scan.nextLine().contains("#def");
+        scan.close();
+        return hasDefinition;
+    }
+
+    private Map<String, List<String>> getDefinitionsFromTemplateText(String templateText) {
+        Scanner scan = new Scanner(templateText);
+        String nextLine = scan.nextLine();
+        Map<String, List<String>> choiceMap = new HashMap<>();
+        while (scan.hasNextLine() && !nextLine.contains("#enddef")) {
+            if(!nextLine.contains("#def")) {
+                Scanner lineScanner = new Scanner(nextLine);
+                String name = lineScanner.findInLine(Pattern.compile("<{2}[a-zæøåA-ZÆØÅ0-9 ]+>{2}"));
+                choiceMap.put(name, parseChoiceDefinitions(nextLine));
+            }
+            nextLine = scan.nextLine();
         }
-        return null;
+        scan.close();
+        return choiceMap;
+    }
+
+    private List<String> parseChoiceDefinitions(String line) {
+        Scanner scan = new Scanner(line);
+        List<String> choices = new ArrayList<>();
+        String choicesString = scan.findInLine(Pattern.compile("=[a-zæøåA-ZÆØÅ0-9 ,.@]+"));
+        Arrays.stream(choicesString.substring(1).split(",")).forEach(item -> {
+            int index = 0;
+            for (char a : item.toCharArray()) {
+                if (a != ' ') {
+                    break;
+                } else {
+                    index++;
+                }
+            }
+            choices.add(item.substring(index));
+        });
+        scan.close();
+        return choices;
+    }
+
+    private String createEmailTemplateText(TemplateFile templateFile) throws FileNotFoundException {
+        Scanner scan = new Scanner(templateFile);
+        StringBuilder emailStringBuilder = new StringBuilder();
+        while (scan.hasNext()) {
+            emailStringBuilder.append(scan.nextLine());
+            if (scan.hasNextLine()) {
+                emailStringBuilder.append("\n");
+            }
+        }
+        scan.close();
+        return emailStringBuilder.toString();
+    }
+
+    private String cleanTemplateText(String templateText) {
+        Scanner scan = new Scanner(templateText);
+        StringBuilder stringBuilder = new StringBuilder();
+        boolean afterDefinition = false;
+        while (scan.hasNextLine()) {
+            if (afterDefinition) {
+                stringBuilder.append(scan.nextLine());
+                if (scan.hasNextLine()) {
+                    stringBuilder.append("\n");
+                }
+            } else if (scan.nextLine().contains("#end")) {
+                afterDefinition = true;
+            }
+        }
+        scan.close();
+        return stringBuilder.toString();
     }
 
     public ArrayList<TemplateFile> listTemplateFiles(File folder) {
@@ -46,79 +162,5 @@ public class TemplateService {
         return Optional.ofNullable(fileName)
                 .filter(f -> f.contains("."))
                 .map(f -> f.substring(fileName.lastIndexOf(".") + 1));
-
-    }
-
-    private EmailTemplate createEmailTemplate(String path, String fileName, String emailTemplateText, HashMap<String, TemplateTextField> templateTextFieldMap) {
-        return new EmailTemplate(
-                fileName,
-                path,
-                emailTemplateText,
-                templateTextFieldMap);
-    }
-
-    private HashMap<String, TemplateTextField> parseTemplateFields(String templateText) {
-        Scanner scan = new Scanner(templateText);
-        HashMap<String, TemplateTextField> templateTextFieldMap = new HashMap<>();
-        scan.findAll(Pattern.compile("<{2}[a-zæøåA-ZÆØÅ0-9 ]+>{2}"))
-                .forEach(item -> {
-                    if (templateTextFieldMap.get(item.group()) == null) {
-                        TemplateTextField templateTextField = new TemplateTextField(
-                                item.end() - item.start(),
-                                item.group(),
-                                TemplateTextField.FieldType.STANDARD_FIELD);
-                        templateTextField.addLocation(item.start());
-                        templateTextFieldMap.put(item.group(), templateTextField);
-                    } else {
-                        templateTextFieldMap.get(item.group()).addLocation(item.start());
-                    }
-                });
-        return templateTextFieldMap;
-    }
-
-    public void checkForPropDefinitions(String templateText) {
-        Scanner scan = new Scanner(templateText);
-        String nextLine = scan.nextLine();
-        List<String> choices;
-        if(nextLine.equals("#def")) {
-            nextLine = scan.nextLine();
-            while (scan.hasNextLine() && !nextLine.equals("#end")){
-                choices = parseChoiceDefinitions(nextLine);
-                choices.forEach(System.out::println);
-                nextLine = scan.nextLine();
-            }
-        }
-    }
-
-    private List<String> parseChoiceDefinitions(String line) {
-        Scanner scan = new Scanner(line);
-        String name = scan.findInLine(Pattern.compile("<{2}[a-zæøåA-ZÆØÅ0-9 ]+>{2}"));
-        List<String> choices = new ArrayList<>();
-        choices.add(name);
-        String choicesString = scan.findInLine(Pattern.compile("=[a-zæøåA-ZÆØÅ0-9 ,.@]+"));
-        Arrays.stream(choicesString.substring(1).split(",")).forEach(item->{
-            int index = 0;
-            for(char a : item.toCharArray()) {
-                if(a != ' ') {
-                    break;
-                } else {
-                    index++;
-                }
-            }
-            choices.add(item.substring(index));
-        });
-        return choices;
-    }
-
-    private String createEmailTemplateText(TemplateFile templateFile) throws FileNotFoundException {
-        Scanner scan = new Scanner(templateFile);
-        StringBuilder emailStringBuilder = new StringBuilder();
-        while (scan.hasNext()) {
-            emailStringBuilder.append(scan.nextLine());
-            if (scan.hasNextLine()) {
-                emailStringBuilder.append("\n");
-            }
-        }
-        return emailStringBuilder.toString();
     }
 }

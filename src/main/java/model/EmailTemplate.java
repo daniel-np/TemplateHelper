@@ -1,12 +1,14 @@
 package model;
 
-import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class EmailTemplate {
     private String name, location, templateText;
-    private HashMap<String, TemplateTextField> templateFields;
+    private Map<String, TemplateTextField> templateFields;
+    private Map<String, List<String>> choiceDefinitions;
 
-    public EmailTemplate(String name, String location, String templateText, HashMap<String, TemplateTextField> templateFields) {
+    public EmailTemplate(String name, String location, String templateText, Map<String, TemplateTextField> templateFields) {
         this.name = name;
         this.location = location;
         this.templateFields = templateFields;
@@ -29,11 +31,11 @@ public class EmailTemplate {
         this.location = location;
     }
 
-    public HashMap<String, TemplateTextField> getTemplateFields() {
+    public Map<String, TemplateTextField> getTemplateFields() {
         return templateFields;
     }
 
-    public void setTemplateFields(HashMap<String, TemplateTextField> templateFields) {
+    public void setTemplateFields(Map<String, TemplateTextField> templateFields) {
         this.templateFields = templateFields;
     }
 
@@ -51,5 +53,13 @@ public class EmailTemplate {
         return "Name: " + name + ", \n" +
                 "Path: " + location + ", \n" +
                 "TemplateText: " + templateText + ", \n";
+    }
+
+    public Map<String, List<String>> getChoiceDefinitions() {
+        return choiceDefinitions;
+    }
+
+    public void setChoiceDefinitions(Map<String, List<String>> choiceDefinitions) {
+        this.choiceDefinitions = choiceDefinitions;
     }
 }

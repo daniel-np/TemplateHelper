@@ -4,6 +4,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import services.TemplateService;
 
+import java.io.FileNotFoundException;
+
 public class EmailTemplateModel {
 
     private TemplateService templateService;
@@ -20,7 +22,11 @@ public class EmailTemplateModel {
     }
 
     public EmailTemplate loadTemplateFromFile(TemplateFile file) {
-        this.currentTemplate = templateService.parseEmailTemplateFile(file);
+        try {
+            this.currentTemplate = templateService.parseEmailTemplateFile(file);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
         return this.currentTemplate;
     }
 
