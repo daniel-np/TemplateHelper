@@ -15,10 +15,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import model.EmailTemplate;
-import model.EmailTemplateModel;
-import model.TemplateFile;
-import model.TemplateTextField;
+import model.*;
 import org.apache.commons.lang3.StringUtils;
 import services.TemplateService;
 import javafx.scene.input.Clipboard;
@@ -31,6 +28,9 @@ public class MainStage extends Application {
     private TextArea outputTextArea;
     private final Clipboard clipboard = Clipboard.getSystemClipboard();
     private final ClipboardContent clipboardContent = new ClipboardContent();
+    private Scene mainScene;
+    private Stage mainStage;
+    private ConfigModel configModel;
 
 
     public static void main(String[] args) {
@@ -39,15 +39,17 @@ public class MainStage extends Application {
 
     @Override
     public void start(Stage stage) {
+        this.mainStage = stage;
         templateService = new TemplateService();
         emailTemplateModel = new EmailTemplateModel(templateService);
+        configModel = new ConfigModel(templateService);
 
-        stage.setTitle("Template Creator");
-        Scene mainScene = mainScene();
+        this.mainStage.setTitle("Template Creator");
+        this.mainScene = mainScene();
 
-        stage.setScene(mainScene);
-        stage.setResizable(false);
-        stage.show();
+        this.mainStage.setScene(mainScene);
+        this.mainStage.setResizable(false);
+        this.mainStage.show();
     }
 
     private Scene mainScene() {
@@ -101,6 +103,14 @@ public class MainStage extends Application {
             addFieldsToTemplateFieldLayout(emailTemplate);
         });
 
+        Button settingsButton = new Button("Settings");
+        settingsButton.setOnAction(e->{
+            SettingsScene settingsScene = new SettingsScene(mainStage, configModel);
+            mainStage.setScene(settingsScene.getSettingsScene());
+            mainStage.show();
+        });
+
+
         GridPane gridPane = new GridPane();
         gridPane.setVgap(10);
         gridPane.setHgap(10);
@@ -109,6 +119,7 @@ public class MainStage extends Application {
         gridPane.add(templateChoiceBoxLabel, 0, 0);
         gridPane.add(templateChoiceBox, 1, 0);
         gridPane.add(loadTemplateButton, 2, 0);
+        gridPane.add(settingsButton, 3, 0);
         return gridPane;
     }
 
@@ -171,10 +182,11 @@ public class MainStage extends Application {
                 choiceBox.setValue(choiceBox.getItems().get(0));
                 gridPane.add(choiceBox, 0, 1);
 
-                choiceBox.getSelectionModel().selectedIndexProperty().addListener(l-> templateFieldList.forEach((n) -> {
+                choiceBox.setOnAction(e->{
                     v.setTemplateTextField(choiceBox.getValue());
+                    System.out.println(choiceBox.getValue());
                     outputTextArea.setText(outputTextArea.getText().replaceAll(k, choiceBox.getValue()));
-                }));
+                });
 
                 templateFieldList.add(templateListCounter[0]++, gridPane);
 
