@@ -7,6 +7,7 @@ import model.TemplateTextField;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TemplateService {
@@ -40,12 +41,10 @@ public class TemplateService {
         parseStandardAndChoiceFields(templateText, choiceDefinitions);
         // Large fields
         parseLargeFields(templateText);
-        // Permanent fields
-
-        // Multi-fields
 
         return templateTextFieldMap;
     }
+
     private void parseLargeFields(String templateText) {
         Scanner scan = new Scanner(templateText);
 
@@ -62,6 +61,7 @@ public class TemplateService {
                     }
                     templateTextFieldMap.get(item.group()).addLocation(item.start());
                 });
+        scan.close();
     }
 
         private void parseStandardAndChoiceFields(String templateText, Map<String, List<String>> choiceDefinitions) {
@@ -179,5 +179,50 @@ public class TemplateService {
         return Optional.ofNullable(fileName)
                 .filter(f -> f.contains("."))
                 .map(f -> f.substring(fileName.lastIndexOf(".") + 1));
+    }
+
+    public String insertPermanentFieldValues(String templateText, Map<String, String> permanentFieldMap) {
+        String[] stringHolder = {templateText};
+        permanentFieldMap.forEach((k,v) -> {
+            stringHolder[0] = templateText.replaceAll(k, v);
+        });
+        return stringHolder[0];
+    }
+
+    public Map<String, String> parseConfigFile(File file) throws FileNotFoundException {
+        Scanner fileScan = new Scanner(file);
+        StringBuilder fileSb = new StringBuilder();
+        while (fileScan.hasNextLine()){
+            fileSb.append(fileScan.nextLine()).append("\n");
+        }
+        fileScan.close();
+        String fileString = fileSb.toString();
+        Scanner stringScan = new Scanner(fileString);
+        Map<String, String> permSettingsMap = new HashMap<>();
+        // Get keys and values
+        String nextLine;
+        Pattern p = Pattern.compile("<{2}\\$[a-zæøåA-ZÆØÅ0-9]+>{2}");
+        Matcher m;
+        while(stringScan.hasNextLine()) {
+            nextLine = stringScan.nextLine();
+            m = p.matcher(nextLine);
+            if (m.find()) {
+                permSettingsMap.put(m.group(), parseConfigFieldValue(nextLine));
+            }
+        }
+        stringScan.close();
+        return permSettingsMap;
+    }
+
+    private String parseConfigFieldValue(String line) {
+        int index = 0;
+        for(char a : line.toCharArray()) {
+            if (a == '=') {
+                index++;
+                break;
+            }
+            index++;
+        }
+        return line.substring(index);
     }
 }
