@@ -13,18 +13,25 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import model.ConfigModel;
 
+import java.util.Map;
+import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 class SettingsScene {
     private Stage parentStage;
     private Scene parentScene;
     private Scene settingsScene;
     private ConfigModel configModel;
+    private Map<String, String> configData;
+    private TextArea settingsOutputTextArea;
 
     SettingsScene(Stage parent, ConfigModel configModel) {
         this.configModel = configModel;
         this.parentStage = parent;
         this.parentScene = parent.getScene();
 
-        HBox hBox = new HBox(settingsTextArea());
+        HBox hBox = new HBox(addSettingFields(),settingsTextArea());
         VBox vBox = new VBox(hBox, submitButtonBar());
         settingsScene = new Scene(vBox);
     }
@@ -32,6 +39,7 @@ class SettingsScene {
     private Node submitButtonBar() {
         Button doneButton = new Button("Done");
         doneButton.setOnAction(e->{
+            saveChanges();
             this.parentStage.setScene(parentScene);
             this.parentStage.show();
         });
@@ -49,25 +57,77 @@ class SettingsScene {
         return hBox;
     }
 
-    private Node settingsTextArea() {
-        TextArea textArea = new TextArea();
-        textArea.setDisable(true);
-        textArea.setMaxSize(400, 400);
-        this.configModel.getPermanentFields().forEach((k,v)-> textArea.setText(k+"="+v+"\n"));
+    private void saveChanges() {
+        configModel.setPermanentFields(configData);
+        configModel.writePermanentFieldValuesToConfigFile();
+    }
 
-        return textArea;
+    private Node settingsTextArea() {
+        settingsOutputTextArea = new TextArea();
+        settingsOutputTextArea.setDisable(true);
+        settingsOutputTextArea.setMaxSize(400, 400);
+        settingsOutputTextArea.clear();
+        this.configModel.getPermanentFields().forEach((k,v)-> settingsOutputTextArea.appendText(k+"="+v+"\n"));
+        this.configData = this.configModel.getPermanentFields();
+
+        return settingsOutputTextArea;
     }
 
     private Node addSettingFields() {
+        // Property/key textField
         TextField settingKeyTF = new TextField();
-        Label settingKeyLabel = new Label("Property name");
+        settingKeyTF.setPromptText("Property");
+        Label settingKeyLabel = new Label("Property");
         settingKeyLabel.setLabelFor(settingKeyTF);
 
-        TextField settingValueTF = new TextField("Value");
+        // Value textField
+        TextField settingValueTF = new TextField();
+        settingValueTF.setPromptText("Value");
         Label settingValueLabel = new Label("Value");
         settingValueLabel.setLabelFor(settingValueTF);
 
-        return new VBox(settingKeyLabel, settingKeyTF, settingValueLabel, settingValueTF);
+        // Buttons
+        Button addButton = new Button("Add");
+        addButton.setOnAction(e-> addSettingFromOutputArea(settingKeyTF.getText(), settingValueTF.getText()));
+        Button removeButton = new Button("Remove");
+        removeButton.setOnAction(e-> removeSettingsFromOutputArea(settingKeyTF.getText()));
+        Button clearButton = new Button("Clear");
+        clearButton.setOnAction(e->{
+            settingKeyTF.clear();
+            settingValueTF.clear();
+        });
+
+        HBox hBox = new HBox(addButton, removeButton, clearButton);
+        hBox.setSpacing(10);
+        hBox.setPadding(new Insets(5,5,5,5));
+        VBox vBox = new VBox(settingKeyLabel, settingKeyTF, settingValueLabel, settingValueTF, hBox);
+        vBox.setPadding(new Insets(5,5,5,5));
+        return vBox;
+    }
+
+    private void removeSettingsFromOutputArea(String property) {
+        Scanner scan = new Scanner(settingsOutputTextArea.getText());
+        String line;
+
+        Pattern p = Pattern.compile("^<{2}\\$(" + property + ")(.)+$", Pattern.MULTILINE);
+        Matcher m;
+        StringBuilder newText = new StringBuilder();
+        while(scan.hasNextLine()) {
+            line = scan.nextLine();
+            m = p.matcher(line);
+            if (m.find()) {
+                newText.append(line);
+                this.configData.remove("<<$" + property + ">>");
+                settingsOutputTextArea.clear();
+                this.configData.forEach((k,v)-> settingsOutputTextArea.appendText(k+"="+v+"\n"));
+            }
+        }
+    }
+
+    private void addSettingFromOutputArea(String property, String value) {
+        this.configData.put("<<$" + property + ">>", value);
+        settingsOutputTextArea.clear();
+        this.configData.forEach((k,v)-> settingsOutputTextArea.appendText(k+"="+v+"\n"));
     }
 
 

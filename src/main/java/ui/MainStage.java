@@ -184,7 +184,6 @@ public class MainStage extends Application {
 
                 choiceBox.setOnAction(e->{
                     v.setTemplateTextField(choiceBox.getValue());
-                    System.out.println(choiceBox.getValue());
                     outputTextArea.setText(outputTextArea.getText().replaceAll(k, choiceBox.getValue()));
                 });
 
