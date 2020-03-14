@@ -35,7 +35,6 @@ public class ConfigModel {
                 PrintWriter printWriter = new PrintWriter(new FileOutputStream(configFile, false));
                 permanentFields.forEach((k,v)->{
                     String printString = k + "=" + v;
-                    System.out.println(printString);
                     printWriter.println(printString);
                 });
                 printWriter.close();
