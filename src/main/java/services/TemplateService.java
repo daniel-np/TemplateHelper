@@ -2,10 +2,12 @@ package services;
 
 import model.EmailTemplate;
 import model.TemplateFile;
-import model.TemplateTextField;
+import model.TemplateField;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,7 +28,7 @@ public class TemplateService {
             choiceMap = getDefinitionsFromTemplateText(templateText);
         }
         // Handle fields - standard, large, permanent, multi-fields
-        Map<String, TemplateTextField> templateTextFieldMap = parseTemplateFields(cleanTemplateText, choiceMap);
+        Map<String, TemplateField> templateTextFieldMap = parseTemplateFields(cleanTemplateText, choiceMap);
         // TODO: Handle fields - multi-fields
         // TODO: Permanent fields
         EmailTemplate emailTemplate = new EmailTemplate(file.getPath(), file.getName(), cleanTemplateText, templateTextFieldMap);
@@ -34,8 +36,8 @@ public class TemplateService {
         return emailTemplate;
     }
 
-    private Map<String, TemplateTextField> templateTextFieldMap = new HashMap<>();
-    private Map<String, TemplateTextField> parseTemplateFields(String templateText, Map<String, List<String>> choiceDefinitions) {
+    private Map<String, TemplateField> templateTextFieldMap = new HashMap<>();
+    private Map<String, TemplateField> parseTemplateFields(String templateText, Map<String, List<String>> choiceDefinitions) {
 
         // Standard fields & Choice fields
         parseStandardAndChoiceFields(templateText, choiceDefinitions);
@@ -51,13 +53,13 @@ public class TemplateService {
         scan.findAll(Pattern.compile("<![a-zæøåA-ZÆØÅ0-9]+!>"))
                 .forEach(item -> {
                     if (templateTextFieldMap.get(item.group()) == null) {
-                        TemplateTextField templateTextField = new TemplateTextField(
+                        TemplateField templateField = new TemplateField(
                                 item.end() - item.start(),
                                 item.group(),
-                                TemplateTextField.FieldType.LARGE_FIELD
+                                TemplateField.FieldType.LARGE_FIELD
                         );
-                        templateTextField.addLocation(item.start());
-                        templateTextFieldMap.put(item.group(), templateTextField);
+                        templateField.addLocation(item.start());
+                        templateTextFieldMap.put(item.group(), templateField);
                     }
                     templateTextFieldMap.get(item.group()).addLocation(item.start());
                 });
@@ -71,20 +73,20 @@ public class TemplateService {
                 .forEach(item -> {
                     if (choiceDefinitions.containsKey(item.group())) {
                         if(Objects.isNull(templateTextFieldMap.get(item.group()))){
-                            TemplateTextField templateTextField = new TemplateTextField(
+                            TemplateField templateField = new TemplateField(
                                     item.end() - item.start(),
                                     item.group(),
-                                    TemplateTextField.FieldType.CHOICE_FIELD,
+                                    TemplateField.FieldType.CHOICE_FIELD,
                                     choiceDefinitions.get(item.group()));
-                            templateTextFieldMap.put(item.group(), templateTextField);
+                            templateTextFieldMap.put(item.group(), templateField);
                         }
                     } else if(templateTextFieldMap.get(item.group()) == null){
-                        TemplateTextField templateTextField = new TemplateTextField(
+                        TemplateField templateField = new TemplateField(
                                 item.end() - item.start(),
                                 item.group(),
-                                TemplateTextField.FieldType.STANDARD_FIELD);
-                        templateTextField.addLocation(item.start());
-                        templateTextFieldMap.put(item.group(), templateTextField);
+                                TemplateField.FieldType.STANDARD_FIELD);
+                        templateField.addLocation(item.start());
+                        templateTextFieldMap.put(item.group(), templateField);
                     }
                     templateTextFieldMap.get(item.group()).addLocation(item.start());
                 });
@@ -181,16 +183,8 @@ public class TemplateService {
                 .map(f -> f.substring(fileName.lastIndexOf(".") + 1));
     }
 
-    public String insertPermanentFieldValues(String templateText, Map<String, String> permanentFieldMap) {
-        String[] stringHolder = {templateText};
-        permanentFieldMap.forEach((k,v) -> {
-            stringHolder[0] = templateText.replaceAll(k, v);
-        });
-        return stringHolder[0];
-    }
-
-    public Map<String, String> parseConfigFile(File file) throws FileNotFoundException {
-        Scanner fileScan = new Scanner(file);
+    public Map<String, TemplateField> parseConfigFile(File file) throws FileNotFoundException {
+        Scanner fileScan = new Scanner(new BufferedReader(new FileReader(file)));
         StringBuilder fileSb = new StringBuilder();
         while (fileScan.hasNextLine()){
             fileSb.append(fileScan.nextLine()).append("\n");
@@ -198,7 +192,7 @@ public class TemplateService {
         fileScan.close();
         String fileString = fileSb.toString();
         Scanner stringScan = new Scanner(fileString);
-        Map<String, String> permSettingsMap = new HashMap<>();
+        Map<String, TemplateField> permSettingsMap = new HashMap<>();
         // Get keys and values
         String nextLine;
         Pattern p = Pattern.compile("<{2}\\$[a-zæøåA-ZÆØÅ0-9]+>{2}");
@@ -207,7 +201,8 @@ public class TemplateService {
             nextLine = stringScan.nextLine();
             m = p.matcher(nextLine);
             if (m.find()) {
-                permSettingsMap.put(m.group(), parseConfigFieldValue(nextLine));
+                String text = parseConfigFieldValue(nextLine);
+                permSettingsMap.put(m.group(), new TemplateField(text.length(),text, TemplateField.FieldType.PERM_FIELD));
             }
         }
         stringScan.close();

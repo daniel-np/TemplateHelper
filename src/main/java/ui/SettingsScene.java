@@ -12,7 +12,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import model.ConfigModel;
+import model.TemplateField;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.regex.Matcher;
@@ -23,7 +25,7 @@ class SettingsScene {
     private Scene parentScene;
     private Scene settingsScene;
     private ConfigModel configModel;
-    private Map<String, String> configData;
+    private Map<String, TemplateField> configData;
     private TextArea settingsOutputTextArea;
 
     SettingsScene(Stage parent, ConfigModel configModel) {
@@ -67,8 +69,8 @@ class SettingsScene {
         settingsOutputTextArea.setDisable(true);
         settingsOutputTextArea.setMaxSize(400, 400);
         settingsOutputTextArea.clear();
-        this.configModel.getPermanentFields().forEach((k,v)-> settingsOutputTextArea.appendText(k+"="+v+"\n"));
-        this.configData = this.configModel.getPermanentFields();
+        this.configModel.getPermanentFields().forEach((k,v)-> settingsOutputTextArea.appendText(k+"="+v.getTemplateTextField()+"\n"));
+        this.configData = new HashMap<>(this.configModel.getPermanentFields());
 
         return settingsOutputTextArea;
     }
@@ -119,15 +121,15 @@ class SettingsScene {
                 newText.append(line);
                 this.configData.remove("<<$" + property + ">>");
                 settingsOutputTextArea.clear();
-                this.configData.forEach((k,v)-> settingsOutputTextArea.appendText(k+"="+v+"\n"));
+                this.configData.forEach((k,v)-> settingsOutputTextArea.appendText(k+"="+v.getTemplateTextField()+"\n"));
             }
         }
     }
 
     private void addSettingFromOutputArea(String property, String value) {
-        this.configData.put("<<$" + property + ">>", value);
+        this.configData.put("<<$" + property + ">>", new TemplateField(value.length(), value, TemplateField.FieldType.PERM_FIELD));
         settingsOutputTextArea.clear();
-        this.configData.forEach((k,v)-> settingsOutputTextArea.appendText(k+"="+v+"\n"));
+        this.configData.forEach((k,v)-> settingsOutputTextArea.appendText(k+"="+v.getTemplateTextField()+"\n"));
     }
 
 

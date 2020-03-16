@@ -5,10 +5,10 @@ import java.util.Map;
 
 public class EmailTemplate {
     private String name, location, templateText;
-    private Map<String, TemplateTextField> templateFields;
+    private Map<String, TemplateField> templateFields;
     private Map<String, List<String>> choiceDefinitions;
 
-    public EmailTemplate(String name, String location, String templateText, Map<String, TemplateTextField> templateFields) {
+    public EmailTemplate(String name, String location, String templateText, Map<String, TemplateField> templateFields) {
         this.name = name;
         this.location = location;
         this.templateFields = templateFields;
@@ -31,11 +31,11 @@ public class EmailTemplate {
         this.location = location;
     }
 
-    public Map<String, TemplateTextField> getTemplateFields() {
+    public Map<String, TemplateField> getTemplateFields() {
         return templateFields;
     }
 
-    public void setTemplateFields(Map<String, TemplateTextField> templateFields) {
+    public void setTemplateFields(Map<String, TemplateField> templateFields) {
         this.templateFields = templateFields;
     }
 

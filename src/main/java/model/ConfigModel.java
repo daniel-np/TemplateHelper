@@ -1,5 +1,8 @@
 package model;
 
+import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableMap;
 import services.TemplateService;
 
 import java.io.*;
@@ -9,7 +12,7 @@ import java.util.Objects;
 
 
 public class ConfigModel {
-    private Map<String, String> permanentFields;
+    private ObservableMap<String, TemplateField> permanentFields;
     private TemplateService templateService;
     private File configFile;
 
@@ -23,7 +26,7 @@ public class ConfigModel {
             configFile = new File(
                     Objects.requireNonNull(getClass().getClassLoader().getResource("user_settings.cfg")).getFile()
             );
-            this.permanentFields = templateService.parseConfigFile(configFile);
+            this.permanentFields = FXCollections.observableMap(templateService.parseConfigFile(configFile));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -31,10 +34,10 @@ public class ConfigModel {
 
     public void writePermanentFieldValuesToConfigFile() {
         try {
-            if(Objects.nonNull(permanentFields) && Objects.nonNull(configFile)) {
+            if (Objects.nonNull(permanentFields) && Objects.nonNull(configFile)) {
                 PrintWriter printWriter = new PrintWriter(new FileOutputStream(configFile, false));
-                permanentFields.forEach((k,v)->{
-                    String printString = k + "=" + v;
+                permanentFields.forEach((k, v) -> {
+                    String printString = k + "=" + v.getTemplateTextField();
                     printWriter.println(printString);
                 });
                 printWriter.close();
@@ -45,17 +48,24 @@ public class ConfigModel {
         }
     }
 
-    public Map<String, String> getPermanentFields() {
+    public Map<String, TemplateField> getPermanentFields() {
         return permanentFields;
     }
 
-    public void setPermanentFields(Map<String, String> permanentFields) {
-        this.permanentFields = permanentFields;
+    public void setPermanentFields(Map<String, TemplateField> permanentFields) {
+        if (!this.getPermanentFields().equals(permanentFields)) {
+            this.permanentFields.clear();
+            this.permanentFields.putAll(permanentFields);
+        }
     }
 
-    public void addPermanentField(String key, String value) {
-        if(Objects.isNull(permanentFields)) {
-            permanentFields = new HashMap<>();
+    public void addPermanentFieldListener(MapChangeListener<String, TemplateField> changeListener) {
+        this.permanentFields.addListener(changeListener);
+    }
+
+    public void addPermanentField(String key, TemplateField value) {
+        if (Objects.isNull(permanentFields)) {
+            permanentFields = FXCollections.observableMap(new HashMap<>());
             permanentFields.put(key, value);
         } else {
             permanentFields.put(key, value);

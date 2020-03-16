@@ -5,7 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TemplateTextField {
+public class TemplateField {
     private int length;
     private ArrayList<Integer> locations;
     private String templateTextField;
@@ -16,7 +16,7 @@ public class TemplateTextField {
         STANDARD_FIELD,
         CHOICE_FIELD,
         LARGE_FIELD,
-        MULTI_FIELD,
+        PERM_FIELD,
         OPTION_FIELD;
 
         @Override
@@ -25,14 +25,14 @@ public class TemplateTextField {
         }
     }
 
-    public TemplateTextField(int length, String templateTextField, FieldType fieldType) {
+    public TemplateField(int length, String templateTextField, FieldType fieldType) {
         this.length = length;
         this.templateTextField = templateTextField;
         this.fieldType = fieldType;
         this.locations = new ArrayList<>();
     }
 
-    public TemplateTextField(int length, String templateTextField, FieldType fieldType, List<String> choices) {
+    public TemplateField(int length, String templateTextField, FieldType fieldType, List<String> choices) {
         this.length = length;
         this.templateTextField = templateTextField;
         this.fieldType = fieldType;
@@ -40,7 +40,7 @@ public class TemplateTextField {
         this.choices = choices;
     }
 
-    public TemplateTextField() {
+    public TemplateField() {
 
     }
 

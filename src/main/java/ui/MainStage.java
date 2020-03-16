@@ -20,6 +20,9 @@ import org.apache.commons.lang3.StringUtils;
 import services.TemplateService;
 import javafx.scene.input.Clipboard;
 
+import java.util.Objects;
+import java.util.regex.Pattern;
+
 public class MainStage extends Application {
     private TemplateService templateService;
     private EmailTemplateModel emailTemplateModel;
@@ -38,11 +41,23 @@ public class MainStage extends Application {
     }
 
     @Override
-    public void start(Stage stage) {
-        this.mainStage = stage;
+    public void init() {
         templateService = new TemplateService();
         emailTemplateModel = new EmailTemplateModel(templateService);
         configModel = new ConfigModel(templateService);
+        configModel.addPermanentFieldListener(l-> insertPermFields());
+
+    }
+
+    private void insertPermFields() {
+        if(Objects.nonNull(outputTextArea) && Objects.nonNull(emailTemplateModel.getCurrentTemplate())) {
+            configModel.getPermanentFields().forEach((k,v)-> outputTextArea.setText(outputTextArea.getText().replaceAll(Pattern.quote(k), v.getTemplateTextField())));
+        }
+    }
+
+    @Override
+    public void start(Stage stage) {
+        this.mainStage = stage;
 
         this.mainStage.setTitle("Template Creator");
         this.mainScene = mainScene();
@@ -100,6 +115,7 @@ public class MainStage extends Application {
         loadTemplateButton.setOnAction(e -> {
             EmailTemplate emailTemplate = emailTemplateModel.loadTemplateFromFile(templateChoiceBox.getValue());
             outputTextArea.setText(emailTemplate.getTemplateText());
+            insertPermFields();
             addFieldsToTemplateFieldLayout(emailTemplate);
         });
 
@@ -166,7 +182,7 @@ public class MainStage extends Application {
 
             gridPane.add(new Label(cleanName), 0, 0);
 
-            if (v.getFieldType().equals(TemplateTextField.FieldType.STANDARD_FIELD)) {
+            if (v.getFieldType().equals(TemplateField.FieldType.STANDARD_FIELD)) {
                 TextField textField = new TextField();
                 textField.setOnAction(e -> templateFieldList.forEach((n) -> {
                     v.setTemplateTextField(textField.getText());
@@ -175,7 +191,7 @@ public class MainStage extends Application {
                 textField.setPromptText(cleanName);
                 gridPane.add(textField, 0, 1);
                 templateFieldList.add(gridPane);
-            } else if (v.getFieldType().equals(TemplateTextField.FieldType.CHOICE_FIELD)) {
+            } else if (v.getFieldType().equals(TemplateField.FieldType.CHOICE_FIELD)) {
 
                 ObservableList<String> templateFileObservableList = FXCollections.observableList(v.getChoices());
                 ChoiceBox<String> choiceBox = new ChoiceBox<>(templateFileObservableList);
@@ -189,7 +205,7 @@ public class MainStage extends Application {
 
                 templateFieldList.add(templateListCounter[0]++, gridPane);
 
-            } else if (v.getFieldType().equals(TemplateTextField.FieldType.LARGE_FIELD)) {
+            } else if (v.getFieldType().equals(TemplateField.FieldType.LARGE_FIELD)) {
                 TextArea textArea = new TextArea();
                 textArea.setPromptText(cleanName);
                 textArea.setPrefWidth(450);
