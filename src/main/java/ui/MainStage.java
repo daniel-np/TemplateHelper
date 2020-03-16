@@ -20,6 +20,8 @@ import org.apache.commons.lang3.StringUtils;
 import services.TemplateService;
 import javafx.scene.input.Clipboard;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -113,6 +115,9 @@ public class MainStage extends Application {
 
         Button loadTemplateButton = new Button("Load template");
         loadTemplateButton.setOnAction(e -> {
+            if(Objects.nonNull(emailTemplateModel.getCurrentTemplate())) {
+                emailTemplateModel.getCurrentTemplate().getTemplateFields().clear();
+            }
             EmailTemplate emailTemplate = emailTemplateModel.loadTemplateFromFile(templateChoiceBox.getValue());
             outputTextArea.setText(emailTemplate.getTemplateText());
             insertPermFields();
@@ -174,11 +179,18 @@ public class MainStage extends Application {
             gridPane.setMaxWidth(250);
             gridPane.setPadding(new Insets(5, 5, 5, 5));
             // Cleaning up name
-            String[] cleanNameArray = StringUtils.splitByCharacterTypeCamelCase(v.getCleanName());
-            for (int i = 0; i < cleanNameArray.length; i++) {
-                cleanNameArray[i] = StringUtils.capitalize(cleanNameArray[i]);
+            List<String> cleanNameArray = Arrays.asList(StringUtils.splitByCharacterTypeCamelCase(v.getCleanName()));
+            int extraSpacing = 0;
+            for (int i = 0; i < cleanNameArray.size(); i++) {
+                if(cleanNameArray.get(i).equals(" ")) {
+                    extraSpacing++;
+                } else {
+                    String temp = StringUtils.capitalize(cleanNameArray.get(i));
+                    cleanNameArray.set(i-extraSpacing, temp);
+                }
             }
-            String cleanName = String.join(" ", cleanNameArray);
+
+            String cleanName = String.join(" ", cleanNameArray.subList(0,cleanNameArray.size()-extraSpacing));
 
             gridPane.add(new Label(cleanName), 0, 0);
 
