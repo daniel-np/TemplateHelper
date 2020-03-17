@@ -15,17 +15,17 @@ public class ConfigModel {
     private ObservableMap<String, TemplateField> permanentFields;
     private TemplateService templateService;
     private File configFile;
+    private String configPath;
 
-    public ConfigModel(TemplateService templateService) {
+    public ConfigModel(TemplateService templateService, String configPath) {
+        this.configPath = configPath;
         this.templateService = templateService;
         loadPermanentFieldValuesFromConfigFile();
     }
 
     private void loadPermanentFieldValuesFromConfigFile() {
         try {
-            configFile = new File(
-                    Objects.requireNonNull(getClass().getClassLoader().getResource("user_settings.cfg")).getFile()
-            );
+            configFile = new File(configPath);
             this.permanentFields = FXCollections.observableMap(templateService.parseConfigFile(configFile));
         } catch (FileNotFoundException e) {
             e.printStackTrace();

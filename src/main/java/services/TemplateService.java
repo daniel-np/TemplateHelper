@@ -29,8 +29,7 @@ public class TemplateService {
         }
         // Handle fields - standard, large, permanent, multi-fields
         Map<String, TemplateField> templateTextFieldMap = parseTemplateFields(cleanTemplateText, choiceMap);
-        // TODO: Handle fields - multi-fields
-        // TODO: Permanent fields
+        // Permanent fields are handled on the frontend controller for now.
         EmailTemplate emailTemplate = new EmailTemplate(file.getPath(), file.getName(), cleanTemplateText, templateTextFieldMap);
         emailTemplate.setChoiceDefinitions(choiceMap);
         return emailTemplate;

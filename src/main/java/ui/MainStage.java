@@ -22,6 +22,7 @@ import javafx.scene.input.Clipboard;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -36,24 +37,35 @@ public class MainStage extends Application {
     private Scene mainScene;
     private Stage mainStage;
     private ConfigModel configModel;
+    private static Map<MainStage.pathMapValues, String> pathMap;
 
+    public enum pathMapValues {
+        TEMPLATE_DIR_PATH,
+        MAIN_DIR_PATH,
+        USER_SETTINGS_PATH
+    }
+
+    public static void startApp(Map<MainStage.pathMapValues, String> pathMap) {
+        MainStage.pathMap = pathMap;
+        launch();
+    }
 
     public static void main(String[] args) {
-        launch();
+        launch(args);
     }
 
     @Override
     public void init() {
         templateService = new TemplateService();
         emailTemplateModel = new EmailTemplateModel(templateService);
-        configModel = new ConfigModel(templateService);
-        configModel.addPermanentFieldListener(l-> insertPermFields());
+        configModel = new ConfigModel(templateService, MainStage.pathMap.get(pathMapValues.USER_SETTINGS_PATH));
+        configModel.addPermanentFieldListener(l -> insertPermFields());
 
     }
 
     private void insertPermFields() {
-        if(Objects.nonNull(outputTextArea) && Objects.nonNull(emailTemplateModel.getCurrentTemplate())) {
-            configModel.getPermanentFields().forEach((k,v)-> outputTextArea.setText(outputTextArea.getText().replaceAll(Pattern.quote(k), v.getTemplateTextField())));
+        if (Objects.nonNull(outputTextArea) && Objects.nonNull(emailTemplateModel.getCurrentTemplate())) {
+            configModel.getPermanentFields().forEach((k, v) -> outputTextArea.setText(outputTextArea.getText().replaceAll(Pattern.quote(k), v.getTemplateTextField())));
         }
     }
 
@@ -106,16 +118,21 @@ public class MainStage extends Application {
 
     private Node createTemplateChooseGrid() {
         Label templateChoiceBoxLabel = new Label("Choose template");
-        String templateDirPath = "/Users/Daniel/Documents/java/Emailgenerator/src/main/resources/templates";
+        String templateDirPath = MainStage.pathMap.get(pathMapValues.TEMPLATE_DIR_PATH);
         TemplateFile templateDirFile = new TemplateFile(templateDirPath);
         ObservableList<TemplateFile> templateFileObservableList =
                 emailTemplateModel.loadTemplateFilesFromDirectory(templateDirFile);
         templateChoiceBox = new ChoiceBox<>(templateFileObservableList);
-        templateChoiceBox.setValue(templateChoiceBox.getItems().get(0));
+        if (templateFileObservableList.isEmpty()) {
+            templateChoiceBoxLabel.setText("No templates");
+            templateChoiceBox.setDisable(true);
+        } else {
+            templateChoiceBox.setValue(templateChoiceBox.getItems().get(0));
+        }
 
         Button loadTemplateButton = new Button("Load template");
         loadTemplateButton.setOnAction(e -> {
-            if(Objects.nonNull(emailTemplateModel.getCurrentTemplate())) {
+            if (Objects.nonNull(emailTemplateModel.getCurrentTemplate())) {
                 emailTemplateModel.getCurrentTemplate().getTemplateFields().clear();
             }
             EmailTemplate emailTemplate = emailTemplateModel.loadTemplateFromFile(templateChoiceBox.getValue());
@@ -125,7 +142,7 @@ public class MainStage extends Application {
         });
 
         Button settingsButton = new Button("Settings");
-        settingsButton.setOnAction(e->{
+        settingsButton.setOnAction(e -> {
             SettingsScene settingsScene = new SettingsScene(mainStage, configModel);
             mainStage.setScene(settingsScene.getSettingsScene());
             mainStage.show();
@@ -182,15 +199,15 @@ public class MainStage extends Application {
             List<String> cleanNameArray = Arrays.asList(StringUtils.splitByCharacterTypeCamelCase(v.getCleanName()));
             int extraSpacing = 0;
             for (int i = 0; i < cleanNameArray.size(); i++) {
-                if(cleanNameArray.get(i).equals(" ")) {
+                if (cleanNameArray.get(i).equals(" ")) {
                     extraSpacing++;
                 } else {
                     String temp = StringUtils.capitalize(cleanNameArray.get(i));
-                    cleanNameArray.set(i-extraSpacing, temp);
+                    cleanNameArray.set(i - extraSpacing, temp);
                 }
             }
 
-            String cleanName = String.join(" ", cleanNameArray.subList(0,cleanNameArray.size()-extraSpacing));
+            String cleanName = String.join(" ", cleanNameArray.subList(0, cleanNameArray.size() - extraSpacing));
 
             gridPane.add(new Label(cleanName), 0, 0);
 
@@ -210,7 +227,7 @@ public class MainStage extends Application {
                 choiceBox.setValue(choiceBox.getItems().get(0));
                 gridPane.add(choiceBox, 0, 1);
 
-                choiceBox.setOnAction(e->{
+                choiceBox.setOnAction(e -> {
                     v.setTemplateTextField(choiceBox.getValue());
                     outputTextArea.setText(outputTextArea.getText().replaceAll(k, choiceBox.getValue()));
                 });
@@ -221,26 +238,26 @@ public class MainStage extends Application {
                 TextArea textArea = new TextArea();
                 textArea.setPromptText(cleanName);
                 textArea.setPrefWidth(450);
-                textArea.setPadding(new Insets(0,0,0,5));
+                textArea.setPadding(new Insets(0, 0, 0, 5));
 
                 Button submitButton = new Button("Submit");
-                submitButton.setOnAction(e->{
+                submitButton.setOnAction(e -> {
                     v.setTemplateTextField(textArea.getText());
                     outputTextArea.setText(outputTextArea.getText().replaceAll(k, textArea.getText()));
                 });
-                gridPane.add(submitButton, 0,3);
-                if (templateListCounter[0]%2 == 0) {
+                gridPane.add(submitButton, 0, 3);
+                if (templateListCounter[0] % 2 == 0) {
                     gridPane.setMaxWidth(500);
-                    gridPane.add(textArea,0,1, 2,2);
-                    templateFieldList.add(templateListCounter[0]++,gridPane);
-                    templateFieldList.add(templateListCounter[0]++,new GridPane());
+                    gridPane.add(textArea, 0, 1, 2, 2);
+                    templateFieldList.add(templateListCounter[0]++, gridPane);
+                    templateFieldList.add(templateListCounter[0]++, new GridPane());
                 } else {
                     gridPane.setMaxWidth(500);
                     gridPane.setPrefWidth(500);
-                    gridPane.add(textArea,0,1,2,2);
-                    templateFieldList.add(templateListCounter[0]++,new GridPane());
-                    templateFieldList.add(templateListCounter[0]++,gridPane);
-                    templateFieldList.add(templateListCounter[0]++,new GridPane());
+                    gridPane.add(textArea, 0, 1, 2, 2);
+                    templateFieldList.add(templateListCounter[0]++, new GridPane());
+                    templateFieldList.add(templateListCounter[0]++, gridPane);
+                    templateFieldList.add(templateListCounter[0]++, new GridPane());
                 }
 
             }
