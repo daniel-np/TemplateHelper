@@ -3,8 +3,11 @@ Email content generator that reads template files and creates a gui to help fill
 
 Its main purpose is email, but it could be used for any template. It requires a basic syntax to create a template, description at the bottom.
 
-<img width="850" alt="Screenshot 2020-03-13 at 23 56 01" src="https://user-images.githubusercontent.com/21195947/76670031-5425ae00-6586-11ea-8c38-2861323db90a.png">
+#### Main template
+<img width="1002" alt="Screenshot 2020-03-19 at 14 42 21" src="https://user-images.githubusercontent.com/21195947/77079377-d9c6b500-69ef-11ea-9af9-19aceb65d337.png">
 
+#### Settings
+<img width="600" alt="Screenshot 2020-03-19 at 14 39 15" src="https://user-images.githubusercontent.com/21195947/77079428-f367fc80-69ef-11ea-86fa-55e9664ad3a2.png">
 
 
 ### Template File Syntax:
