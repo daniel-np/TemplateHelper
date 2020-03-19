@@ -20,10 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import services.TemplateService;
 import javafx.scene.input.Clipboard;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class MainStage extends Application {
@@ -87,23 +84,49 @@ public class MainStage extends Application {
         return new Scene(hBox);
     }
 
+    private boolean resetOutputText() {
+        if (Objects.nonNull(emailTemplateModel) && Objects.nonNull(emailTemplateModel.getCurrentTemplate())) {
+            outputTextArea.setText(emailTemplateModel.getCurrentTemplate().getTemplateText());
+            return true;
+        }
+        return false;
+    }
+
     private Node outputField() {
         Label outputTextAreaLabel = new Label("Output text area");
 
+        Button addAllFieldsButton = new Button("Add all fields");
+        addAllFieldsButton.setOnAction(e -> {
+            if (resetOutputText()) {
+                nodeList.forEach(node -> {
+                    if (node instanceof TextField) {
+                        if (!((TextField) node).getText().equals(""))
+                            outputTextArea.setText(outputTextArea.getText().replaceAll(node.getId(), ((TextField) node).getText()));
+                    } else if (node instanceof TextArea) {
+                        if (!((TextArea) node).getText().equals(""))
+                            outputTextArea.setText(outputTextArea.getText().replaceAll(node.getId(), ((TextArea) node).getText()));
+                    } else if (node instanceof ChoiceBox) {
+                        if (!((ChoiceBox) node).getValue().equals(""))
+                            outputTextArea.setText(outputTextArea.getText().replaceAll(node.getId(), ((ChoiceBox) node).getValue().toString()));
+                    }
+                });
+            }
+        });
         Button copyTextButton = new Button("Copy text");
         copyTextButton.setOnAction(e -> {
             clipboardContent.putString(outputTextArea.getText());
             clipboard.setContent(clipboardContent);
         });
         Button resetTextButton = new Button("Reset text");
-        resetTextButton.setOnAction(e -> outputTextArea.setText(emailTemplateModel.getCurrentTemplate().getTemplateText()));
+        resetTextButton.setOnAction(e -> resetOutputText());
 
         GridPane gridPane = new GridPane();
-        gridPane.setAlignment(Pos.TOP_RIGHT);
+        gridPane.setAlignment(Pos.TOP_LEFT);
         gridPane.setVgap(10);
         gridPane.setHgap(10);
         gridPane.setPadding(new Insets(10, 10, 10, 10));
         gridPane.add(outputTextAreaLabel, 0, 0);
+        gridPane.add(addAllFieldsButton, 2, 0);
         gridPane.add(copyTextButton, 3, 0);
         gridPane.add(resetTextButton, 4, 0);
 
@@ -135,10 +158,12 @@ public class MainStage extends Application {
             if (Objects.nonNull(emailTemplateModel.getCurrentTemplate())) {
                 emailTemplateModel.getCurrentTemplate().getTemplateFields().clear();
             }
-            EmailTemplate emailTemplate = emailTemplateModel.loadTemplateFromFile(templateChoiceBox.getValue());
-            outputTextArea.setText(emailTemplate.getTemplateText());
-            insertPermFields();
-            addFieldsToTemplateFieldLayout(emailTemplate);
+            if (Objects.nonNull(templateChoiceBox.getValue())) {
+                EmailTemplate emailTemplate = emailTemplateModel.loadTemplateFromFile(templateChoiceBox.getValue());
+                outputTextArea.setText(emailTemplate.getTemplateText());
+                insertPermFields();
+                addFieldsToTemplateFieldLayout(emailTemplate);
+            }
         });
 
         Button settingsButton = new Button("Settings");
@@ -183,9 +208,12 @@ public class MainStage extends Application {
         return scrollPane;
     }
 
+    private List<Node> nodeList;
+
     private void addFieldsToTemplateFieldLayout(EmailTemplate emailTemplate) {
         templateFieldList.removeAll();
         templateFieldList.clear();
+        nodeList = new ArrayList<>();
 
         int[] templateListCounter = {0};
         emailTemplate.getTemplateFields().forEach((k, v) -> {
@@ -213,39 +241,31 @@ public class MainStage extends Application {
 
             if (v.getFieldType().equals(TemplateField.FieldType.STANDARD_FIELD)) {
                 TextField textField = new TextField();
-                textField.setOnAction(e -> templateFieldList.forEach((n) -> {
-                    v.setTemplateTextField(textField.getText());
-                    outputTextArea.setText(outputTextArea.getText().replaceAll(k, textField.getText()));
-                }));
+                textField.setId(k);
                 textField.setPromptText(cleanName);
                 gridPane.add(textField, 0, 1);
                 templateFieldList.add(gridPane);
+                nodeList.add(textField);
             } else if (v.getFieldType().equals(TemplateField.FieldType.CHOICE_FIELD)) {
 
                 ObservableList<String> templateFileObservableList = FXCollections.observableList(v.getChoices());
                 ChoiceBox<String> choiceBox = new ChoiceBox<>(templateFileObservableList);
+                choiceBox.setId(k);
                 choiceBox.setValue(choiceBox.getItems().get(0));
                 gridPane.add(choiceBox, 0, 1);
-
-                choiceBox.setOnAction(e -> {
-                    v.setTemplateTextField(choiceBox.getValue());
-                    outputTextArea.setText(outputTextArea.getText().replaceAll(k, choiceBox.getValue()));
-                });
-
                 templateFieldList.add(templateListCounter[0]++, gridPane);
+                nodeList.add(choiceBox);
 
             } else if (v.getFieldType().equals(TemplateField.FieldType.LARGE_FIELD)) {
                 TextArea textArea = new TextArea();
+                textArea.setId(k);
                 textArea.setPromptText(cleanName);
                 textArea.setPrefWidth(450);
                 textArea.setPadding(new Insets(0, 0, 0, 5));
 
                 Button submitButton = new Button("Submit");
-                submitButton.setOnAction(e -> {
-                    v.setTemplateTextField(textArea.getText());
-                    outputTextArea.setText(outputTextArea.getText().replaceAll(k, textArea.getText()));
-                });
                 gridPane.add(submitButton, 0, 3);
+                nodeList.add(textArea);
                 if (templateListCounter[0] % 2 == 0) {
                     gridPane.setMaxWidth(500);
                     gridPane.add(textArea, 0, 1, 2, 2);
@@ -259,7 +279,6 @@ public class MainStage extends Application {
                     templateFieldList.add(templateListCounter[0]++, gridPane);
                     templateFieldList.add(templateListCounter[0]++, new GridPane());
                 }
-
             }
 
         });
