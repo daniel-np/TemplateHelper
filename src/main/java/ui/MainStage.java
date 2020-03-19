@@ -262,9 +262,6 @@ public class MainStage extends Application {
                 textArea.setPromptText(cleanName);
                 textArea.setPrefWidth(450);
                 textArea.setPadding(new Insets(0, 0, 0, 5));
-
-                Button submitButton = new Button("Submit");
-                gridPane.add(submitButton, 0, 3);
                 nodeList.add(textArea);
                 if (templateListCounter[0] % 2 == 0) {
                     gridPane.setMaxWidth(500);
