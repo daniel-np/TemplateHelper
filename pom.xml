@@ -7,6 +7,13 @@
     <groupId>Email-generator</groupId>
     <artifactId>Email-generator</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub h182675 Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/h182675/EmailGenerator</url>
+        </repository>
+    </distributionManagement>
     <dependencies>
         <!-- https://mvnrepository.com/artifact/org.openjfx/javafx -->
         <dependency>

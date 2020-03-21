@@ -45,4 +45,11 @@
       </plugin>
     </plugins>
   </build>
+  <distributionManagement>
+    <repository>
+      <id>github</id>
+      <name>GitHub h182675 Apache Maven Packages</name>
+      <url>https://maven.pkg.github.com/h182675/EmailGenerator</url>
+    </repository>
+  </distributionManagement>
 </project>
