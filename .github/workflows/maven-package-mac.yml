@@ -25,3 +25,5 @@ jobs:
       run: mvn -B package
     - name: echo
       run: ls
+    - name: Deploy package
+      run: mvn deploy -Dregistry=https://maven.pkg.github.com/h182675 -Dtoken=GH_TOKEN
