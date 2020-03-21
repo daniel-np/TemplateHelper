@@ -21,12 +21,7 @@ jobs:
         java-version: 1.11
         server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
         settings-path: ${{ github.workspace }} # location for the settings.xml file
-    - name: echo
-      run: ls
     - name: Build with Maven
       run: mvn --batch package
-
-    - name: Publish to GitHub Packages Apache Maven
-      run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
+    - name: echo
+      run: ls
