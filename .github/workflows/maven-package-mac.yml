@@ -11,7 +11,7 @@ on:
 jobs:
   build:
 
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
@@ -19,11 +19,11 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.11
-        server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
-        settings-path: ${{ github.workspace }} # location for the settings.xml file
+
     - name: Build with Maven
-      run: mvn -B package
-    - name: echo
-      run: ls
-    - name: Deploy package
-      run: mvn deploy -Dregistry=https://maven.pkg.github.com/h182675/EmailGenerator -Dtoken=aee9c43f34dbff908896f39a9115bb7fe949ae8c
+      run: mvn -B package --file pom.xml
+
+    - name: Publish to GitHub Packages Apache Maven
+      run: mvn deploy
+      env:
+        GITHUB_TOKEN: ${{ github.token }} # GITHUB_TOKEN is the default env for the password
