@@ -25,4 +25,5 @@ jobs:
       run: ./target/
     - name: Deploy
       run: mvn deploy
-      env: ${{ github.token }} # GITHUB_TOKEN is the default env for the password
+      env:
+       GITHUB_TOKEN: ${{github.token}} 
