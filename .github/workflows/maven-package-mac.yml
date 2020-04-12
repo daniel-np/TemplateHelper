@@ -6,7 +6,7 @@ name: Maven Package
 on: 
  push:
    branches: 
-     - master
+     - builds
 
 jobs:
   build:
@@ -27,7 +27,7 @@ jobs:
       uses: mavrosxristoforos/get-xml-info@1.0
       with:
        xml-file: 'pom.xml'
-       xpath: '/project/profiles/profile/build/plugins/plugin/executions/execution/configuration/outfile' 
+       xpath: '/*[local-name="project"]/*[local-name="profiles"]/*[local-name="profile"]/*[local-name="build"]/*[local-name="plugins"]/*[local-name="plugin"]/*[local-name="executions"]/*[local-name="execution"]/*[local-name="configuration"]/*[local-name="outfile"]' 
     - name: Echo path
       run: echo ${steps.getExePath.info}
     #- name: Run
