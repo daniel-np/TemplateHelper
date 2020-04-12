@@ -7,6 +7,7 @@ Its main purpose is email, but it could be used for any template. It requires a 
 <img width="1002" alt="Screenshot 2020-03-19 at 14 42 21" src="https://user-images.githubusercontent.com/21195947/77079377-d9c6b500-69ef-11ea-9af9-19aceb65d337.png">
 
 #### Settings
+Used for creating values for fields that go across multiple templates
 <img width="600" alt="Screenshot 2020-03-19 at 14 39 15" src="https://user-images.githubusercontent.com/21195947/77079428-f367fc80-69ef-11ea-86fa-55e9664ad3a2.png">
 
 
@@ -27,3 +28,19 @@ Its main purpose is email, but it could be used for any template. It requires a 
 
 #### Fields predefined in settings, available across multiple templates:
 ```<$fieldFromConfigStorage$> ```
+
+#### Example
+```
+#def
+<<day>>=Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday
+#enddef
+Hi I'm <$nameField$>,
+
+<!content!>
+
+I'd love a reply before <<day>>!
+
+Regards,
+
+<$nameField$>
+```
