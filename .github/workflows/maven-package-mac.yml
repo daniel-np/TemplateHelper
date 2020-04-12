@@ -27,7 +27,7 @@ jobs:
       uses: mavrosxristoforos/get-xml-info@1.0
       with:
        xml-file: 'pom.xml'
-       xpath: '//*[@id="l4j-clui"]/configuration/outfile' 
+       xpath: '/project/profiles/profile/build/plugins/plugin/executions/execution/configuration/outfile' 
     - name: Echo path
       run: echo ${steps.getExePath.info}
     #- name: Run
