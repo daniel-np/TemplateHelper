@@ -19,16 +19,10 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.14
-
-    #- name: Build with Maven
-     # run: mvn package -Pwindows
-    - name: Get XML Info
-      id: getExePath
-      uses: mavrosxristoforos/get-xml-info@1.0
-      with:
-       xml-file: 'pom.xml'
-       xpath: '/*[local-name="project"]/*[local-name="profiles"]/*[local-name="profile"]/*[local-name="build"]/*[local-name="plugins"]/*[local-name="plugin"]/*[local-name="executions"]/*[local-name="execution"]/*[local-name="configuration"]/*[local-name="outfile"]/text()' 
-    - name: Echo path
-      run: echo ${steps.getExePath.info}
-    #- name: Run
-    #  run: ./target/
+    - name: Build with Maven
+      run: mvn package -Pwindows
+    - name: Run
+      run: ./target/
+    - name: Deploy
+      run: mvn deploy
+      env: ${{ github.token }} # GITHUB_TOKEN is the default env for the password
