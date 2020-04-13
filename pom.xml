@@ -106,7 +106,7 @@
                                 <goals><goal>launch4j</goal></goals>
                                 <configuration>
                                     <headerType>gui</headerType>
-                                    <outfile>target/${project.groupId}-${project.version}.exe</outfile>
+                                    <outfile>target/TemplateHelper.exe</outfile>
                                     <jar>target/${project.groupId}-${project.version}.jar</jar>
                                     <errTitle>${project.groupId}-${project.version} error</errTitle>
                                     <classPath>
