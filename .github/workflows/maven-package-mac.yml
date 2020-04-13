@@ -5,8 +5,10 @@ name: Create Release
 
 on: 
  push:
-   tags:
-    - 'v*'
+  branches: 
+   - master
+  tags:
+   - 'v*'
 
 jobs:
   build:
