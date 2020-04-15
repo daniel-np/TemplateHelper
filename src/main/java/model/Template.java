@@ -3,12 +3,12 @@ package model;
 import java.util.List;
 import java.util.Map;
 
-public class EmailTemplate {
+public class Template {
     private String name, location, templateText;
     private Map<String, TemplateField> templateFields;
     private Map<String, List<String>> choiceDefinitions;
 
-    public EmailTemplate(String name, String location, String templateText, Map<String, TemplateField> templateFields) {
+    public Template(String name, String location, String templateText, Map<String, TemplateField> templateFields) {
         this.name = name;
         this.location = location;
         this.templateFields = templateFields;

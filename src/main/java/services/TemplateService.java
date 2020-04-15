@@ -1,6 +1,6 @@
 package services;
 
-import model.EmailTemplate;
+import model.Template;
 import model.TemplateFile;
 import model.TemplateField;
 
@@ -18,9 +18,9 @@ public class TemplateService {
 
     }
 
-    public EmailTemplate parseEmailTemplateFile(TemplateFile file) throws FileNotFoundException {
+    public Template parseTemplateFile(TemplateFile file) throws FileNotFoundException {
 
-        String templateText = createEmailTemplateText(file);
+        String templateText = createTemplateText(file);
         String cleanTemplateText = cleanTemplateText(templateText);
         // Choice definitions
         Map<String, List<String>> choiceMap = new HashMap<>();
@@ -30,9 +30,9 @@ public class TemplateService {
         // Handle fields - standard, large, permanent, multi-fields
         Map<String, TemplateField> templateTextFieldMap = parseTemplateFields(cleanTemplateText, choiceMap);
         // Permanent fields are handled on the frontend controller for now.
-        EmailTemplate emailTemplate = new EmailTemplate(file.getPath(), file.getName(), cleanTemplateText, templateTextFieldMap);
-        emailTemplate.setChoiceDefinitions(choiceMap);
-        return emailTemplate;
+        Template template = new Template(file.getPath(), file.getName(), cleanTemplateText, templateTextFieldMap);
+        template.setChoiceDefinitions(choiceMap);
+        return template;
     }
 
     private Map<String, TemplateField> templateTextFieldMap = new HashMap<>();
@@ -134,17 +134,17 @@ public class TemplateService {
         return choices;
     }
 
-    private String createEmailTemplateText(TemplateFile templateFile) throws FileNotFoundException {
+    private String createTemplateText(TemplateFile templateFile) throws FileNotFoundException {
         Scanner scan = new Scanner(templateFile);
-        StringBuilder emailStringBuilder = new StringBuilder();
+        StringBuilder templateStringBuilder = new StringBuilder();
         while (scan.hasNext()) {
-            emailStringBuilder.append(scan.nextLine());
+            templateStringBuilder.append(scan.nextLine());
             if (scan.hasNextLine()) {
-                emailStringBuilder.append("\n");
+                templateStringBuilder.append("\n");
             }
         }
         scan.close();
-        return emailStringBuilder.toString();
+        return templateStringBuilder.toString();
     }
 
     private String cleanTemplateText(String templateText) {

@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 
 public class MainStage extends Application {
     private TemplateService templateService;
-    private EmailTemplateModel emailTemplateModel;
+    private TemplateModel templateModel;
     private ChoiceBox<TemplateFile> templateChoiceBox;
     private ObservableList<Node> templateFieldList;
     private TextArea outputTextArea;
@@ -54,14 +54,14 @@ public class MainStage extends Application {
     @Override
     public void init() {
         templateService = new TemplateService();
-        emailTemplateModel = new EmailTemplateModel(templateService);
+        templateModel = new TemplateModel(templateService);
         configModel = new ConfigModel(templateService, MainStage.pathMap.get(pathMapValues.USER_SETTINGS_PATH));
         configModel.addPermanentFieldListener(l -> insertPermFields());
 
     }
 
     private void insertPermFields() {
-        if (Objects.nonNull(outputTextArea) && Objects.nonNull(emailTemplateModel.getCurrentTemplate())) {
+        if (Objects.nonNull(outputTextArea) && Objects.nonNull(templateModel.getCurrentTemplate())) {
             configModel.getPermanentFields().forEach((k, v) -> outputTextArea.setText(outputTextArea.getText().replaceAll(Pattern.quote(k), v.getTemplateTextField())));
         }
     }
@@ -85,8 +85,8 @@ public class MainStage extends Application {
     }
 
     private boolean resetOutputText() {
-        if (Objects.nonNull(emailTemplateModel) && Objects.nonNull(emailTemplateModel.getCurrentTemplate())) {
-            outputTextArea.setText(emailTemplateModel.getCurrentTemplate().getTemplateText());
+        if (Objects.nonNull(templateModel) && Objects.nonNull(templateModel.getCurrentTemplate())) {
+            outputTextArea.setText(templateModel.getCurrentTemplate().getTemplateText());
             return true;
         }
         return false;
@@ -98,6 +98,7 @@ public class MainStage extends Application {
         Button addAllFieldsButton = new Button("Add all fields");
         addAllFieldsButton.setOnAction(e -> {
             if (resetOutputText()) {
+                insertPermFields();
                 nodeList.forEach(node -> {
                     if (node instanceof TextField) {
                         if (!((TextField) node).getText().equals(""))
@@ -144,7 +145,7 @@ public class MainStage extends Application {
         String templateDirPath = MainStage.pathMap.get(pathMapValues.TEMPLATE_DIR_PATH);
         TemplateFile templateDirFile = new TemplateFile(templateDirPath);
         ObservableList<TemplateFile> templateFileObservableList =
-                emailTemplateModel.loadTemplateFilesFromDirectory(templateDirFile);
+                templateModel.loadTemplateFilesFromDirectory(templateDirFile);
         templateChoiceBox = new ChoiceBox<>(templateFileObservableList);
         if (templateFileObservableList.isEmpty()) {
             templateChoiceBoxLabel.setText("No templates");
@@ -155,14 +156,14 @@ public class MainStage extends Application {
 
         Button loadTemplateButton = new Button("Load template");
         loadTemplateButton.setOnAction(e -> {
-            if (Objects.nonNull(emailTemplateModel.getCurrentTemplate())) {
-                emailTemplateModel.getCurrentTemplate().getTemplateFields().clear();
+            if (Objects.nonNull(templateModel.getCurrentTemplate())) {
+                templateModel.getCurrentTemplate().getTemplateFields().clear();
             }
             if (Objects.nonNull(templateChoiceBox.getValue())) {
-                EmailTemplate emailTemplate = emailTemplateModel.loadTemplateFromFile(templateChoiceBox.getValue());
-                outputTextArea.setText(emailTemplate.getTemplateText());
+                Template template = templateModel.loadTemplateFromFile(templateChoiceBox.getValue());
+                outputTextArea.setText(template.getTemplateText());
                 insertPermFields();
-                addFieldsToTemplateFieldLayout(emailTemplate);
+                addFieldsToTemplateFieldLayout(template);
             }
         });
 
@@ -210,13 +211,13 @@ public class MainStage extends Application {
 
     private List<Node> nodeList;
 
-    private void addFieldsToTemplateFieldLayout(EmailTemplate emailTemplate) {
+    private void addFieldsToTemplateFieldLayout(Template template) {
         templateFieldList.removeAll();
         templateFieldList.clear();
         nodeList = new ArrayList<>();
 
         int[] templateListCounter = {0};
-        emailTemplate.getTemplateFields().forEach((k, v) -> {
+        template.getTemplateFields().forEach((k, v) -> {
             GridPane gridPane = new GridPane();
             gridPane.setVgap(5);
             gridPane.setHgap(5);

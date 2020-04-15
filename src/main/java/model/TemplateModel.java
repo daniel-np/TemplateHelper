@@ -6,13 +6,13 @@ import services.TemplateService;
 
 import java.io.FileNotFoundException;
 
-public class EmailTemplateModel {
+public class TemplateModel {
 
     private TemplateService templateService;
-    private EmailTemplate currentTemplate;
+    private Template currentTemplate;
     private ObservableList<TemplateFile> templateList;
 
-    public EmailTemplateModel(TemplateService templateService) {
+    public TemplateModel(TemplateService templateService) {
         this.templateService = templateService;
     }
 
@@ -21,9 +21,9 @@ public class EmailTemplateModel {
         return templateList;
     }
 
-    public EmailTemplate loadTemplateFromFile(TemplateFile file) {
+    public Template loadTemplateFromFile(TemplateFile file) {
         try {
-            this.currentTemplate = templateService.parseEmailTemplateFile(file);
+            this.currentTemplate = templateService.parseTemplateFile(file);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -34,7 +34,7 @@ public class EmailTemplateModel {
         return this.templateList;
     }
 
-    public EmailTemplate getCurrentTemplate() {
+    public Template getCurrentTemplate() {
         return this.currentTemplate;
     }
 }
