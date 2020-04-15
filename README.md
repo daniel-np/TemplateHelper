@@ -1,5 +1,5 @@
-# EmailGenerator
-Email content generator that reads template files and creates a gui to help fill out the data
+# Template Generator
+Template content generator that reads template files and creates a gui to help fill out the data
 
 Its main purpose is email, but it could be used for any template. It requires a basic syntax to create a template, description at the bottom.
 
