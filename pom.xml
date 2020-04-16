@@ -112,6 +112,7 @@
                                     <classPath>
                                         <mainClass>Main</mainClass>
                                     </classPath>
+                                    <icon>src/main/resources/icons/desktop.ico</icon>
                                     <jre>
                                         <minVersion>11</minVersion>
                                     </jre>
