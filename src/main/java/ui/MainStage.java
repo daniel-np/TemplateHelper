@@ -3,13 +3,14 @@ package ui;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.*;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -18,7 +19,6 @@ import javafx.stage.Stage;
 import model.*;
 import org.apache.commons.lang3.StringUtils;
 import services.TemplateService;
-import javafx.scene.input.Clipboard;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -35,6 +35,11 @@ public class MainStage extends Application {
     private Stage mainStage;
     private ConfigModel configModel;
     private static Map<MainStage.pathMapValues, String> pathMap;
+    private Button addAllFieldsButton;
+    private Button copyTextButton;
+    private Button resetTextButton;
+    private Button loadTemplateButton;
+    private Button settingsButton;
 
     public enum pathMapValues {
         TEMPLATE_DIR_PATH,
@@ -72,16 +77,39 @@ public class MainStage extends Application {
 
         this.mainStage.setTitle("Template Creator");
         this.mainScene = mainScene();
-
         this.mainStage.setScene(mainScene);
+        createAccelerators();
         this.mainStage.setResizable(false);
         this.mainStage.show();
     }
+
 
     private Scene mainScene() {
         VBox vBox = new VBox(createTemplateChooseGrid(), createTemplateFieldLayout());
         HBox hBox = new HBox(vBox, outputField());
         return new Scene(hBox);
+    }
+
+
+    private void createAccelerators() {
+        // ctrl+l Load template
+        KeyCodeCombination kcLoadTemplate = new KeyCodeCombination(KeyCode.L, KeyCombination.CONTROL_DOWN);
+        mainScene.getAccelerators().put(kcLoadTemplate, loadTemplateButton::fire);
+        // ctrl+s Settings
+        KeyCodeCombination kcSettings = new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN);
+        mainScene.getAccelerators().put(kcSettings, settingsButton::fire);
+        // ctrl+r Reset text
+        KeyCodeCombination kcResetText = new KeyCodeCombination(KeyCode.R, KeyCombination.CONTROL_DOWN);
+        mainScene.getAccelerators().put(kcResetText, resetTextButton::fire);
+        // ctrl+c Copy text
+        KeyCodeCombination kcCopyAllText = new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN);
+        mainScene.getAccelerators().put(kcCopyAllText, copyTextButton::fire);
+        // ctrl+a Add all fields
+        KeyCodeCombination kcAddAllFields = new KeyCodeCombination(KeyCode.A, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN);
+        mainScene.getAccelerators().put(kcAddAllFields, addAllFieldsButton::fire);
+        // F1 copy specific field 1
+        // F2 copy specific field 2
+        // F3 copy specific field 3
     }
 
     private boolean resetOutputText() {
@@ -95,7 +123,8 @@ public class MainStage extends Application {
     private Node outputField() {
         Label outputTextAreaLabel = new Label("Output text area");
 
-        Button addAllFieldsButton = new Button("Add all fields");
+        this.addAllFieldsButton = new Button("Add all fields");
+
         addAllFieldsButton.setOnAction(e -> {
             if (resetOutputText()) {
                 insertPermFields();
@@ -113,12 +142,13 @@ public class MainStage extends Application {
                 });
             }
         });
-        Button copyTextButton = new Button("Copy text");
+
+        this.copyTextButton = new Button("Copy text");
         copyTextButton.setOnAction(e -> {
             clipboardContent.putString(outputTextArea.getText());
             clipboard.setContent(clipboardContent);
         });
-        Button resetTextButton = new Button("Reset text");
+        this.resetTextButton = new Button("Reset text");
         resetTextButton.setOnAction(e -> resetOutputText());
 
         GridPane gridPane = new GridPane();
@@ -136,7 +166,6 @@ public class MainStage extends Application {
         outputTextArea.setPrefWidth(500);
         outputTextArea.setPrefHeight(510);
         outputTextArea.setEditable(false);
-
         return new VBox(gridPane, outputTextArea);
     }
 
@@ -154,7 +183,7 @@ public class MainStage extends Application {
             templateChoiceBox.setValue(templateChoiceBox.getItems().get(0));
         }
 
-        Button loadTemplateButton = new Button("Load template");
+        this.loadTemplateButton = new Button("Load template");
         loadTemplateButton.setOnAction(e -> {
             if (Objects.nonNull(templateModel.getCurrentTemplate())) {
                 templateModel.getCurrentTemplate().getTemplateFields().clear();
@@ -167,7 +196,7 @@ public class MainStage extends Application {
             }
         });
 
-        Button settingsButton = new Button("Settings");
+        this.settingsButton = new Button("Settings");
         settingsButton.setOnAction(e -> {
             SettingsScene settingsScene = new SettingsScene(mainStage, configModel);
             mainStage.setScene(settingsScene.getSettingsScene());
