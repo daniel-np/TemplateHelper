@@ -26,4 +26,4 @@ jobs:
             FROM_BRANCH: "develop"
             TO_BRANCH: "master"
       - name: echo
-        run: echo "something"
+        run: echo "{{pull.PULL_REQUEST_NUMBER}}"
