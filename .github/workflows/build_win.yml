@@ -26,6 +26,4 @@ jobs:
             FROM_BRANCH: "develop"
             TO_BRANCH: "master"
       - name: Merge Pal
-        uses: maxkomarychev/merge-pal-action@v0.5.1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - echo "something"
