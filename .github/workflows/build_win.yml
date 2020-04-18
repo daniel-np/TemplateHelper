@@ -26,4 +26,4 @@ jobs:
             FROM_BRANCH: "develop"
             TO_BRANCH: "master"
       - name: echo step
-        run: echo "${{steps.pull.outputs.PULL_REQUEST_NUMBER}}"
+        run: echo "${{steps.pull.PULL_REQUEST_NUMBER}}"
