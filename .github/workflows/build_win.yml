@@ -18,11 +18,10 @@ jobs:
           java-version: 1.14
       - name: Build with Maven
         run: mvn package -Pwindows
-      - name: Merge
-        uses: robotology/gh-action-nightly-merge@v1.2.0
-        with:
-         stable_branch: 'master'
-         development_branch: 'develop'
-         allow_ff: false
-        env:
-         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Opening pull request
+          id: pull
+          uses: tretuna/sync-branches@1.1.0
+          with:
+            GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+            FROM_BRANCH: "develop"
+            TO_BRANCH: "master"
