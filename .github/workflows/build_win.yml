@@ -26,4 +26,5 @@ jobs:
             FROM_BRANCH: "develop"
             TO_BRANCH: "master"
       - name: Merge Pal
-      - run: echo "something"
+      - name: echo
+        run: echo "something"
