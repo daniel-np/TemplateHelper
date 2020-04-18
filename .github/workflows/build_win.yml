@@ -25,6 +25,4 @@ jobs:
             GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
             FROM_BRANCH: "develop"
             TO_BRANCH: "master"
-      - name: Merge Pal
-      - name: echo
-        run: echo "something"
+      - echo: "something"
