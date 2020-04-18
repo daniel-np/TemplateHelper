@@ -25,3 +25,7 @@ jobs:
             GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
             FROM_BRANCH: "develop"
             TO_BRANCH: "master"
+      - name: merge pr
+        uses: maxkomarychev/merge-pal-action@vX.Y.Z
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
