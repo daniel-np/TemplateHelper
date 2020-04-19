@@ -121,12 +121,15 @@ public class MainStage extends Application {
         mainScene.getAccelerators().clear();
         createBasicAccelerators();
         templateModel.getCurrentTemplate().getHotkeyMap().forEach((k,v)->{
-            KeyCodeCombination keyCombination = new KeyCodeCombination(KeyCode.getKeyCode(k));
-            mainScene.getAccelerators().put(keyCombination, ()->{
-                System.out.println(templateModel.getCurrentTemplate().getCurrentTemplateFieldValuesMap().get(v));
-                clipboardContent.putString(templateModel.getCurrentTemplate().getCurrentTemplateFieldValuesMap().get(v));
-                clipboard.setContent(clipboardContent);
-            });
+            KeyCode keyCode = KeyCode.getKeyCode(k);
+            if(keyCode != null) {
+            KeyCodeCombination keyCombination = new KeyCodeCombination(keyCode);
+                mainScene.getAccelerators().put(keyCombination, ()->{
+                    System.out.println(templateModel.getCurrentTemplate().getCurrentTemplateFieldValuesMap().get(v));
+                    clipboardContent.putString(templateModel.getCurrentTemplate().getCurrentTemplateFieldValuesMap().get(v));
+                    clipboard.setContent(clipboardContent);
+                });
+            }
         });
     }
 
