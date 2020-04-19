@@ -1,6 +1,7 @@
 package ui;
 
 import javafx.application.Application;
+import javafx.application.HostServices;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -20,6 +21,9 @@ import model.*;
 import org.apache.commons.lang3.StringUtils;
 import services.TemplateService;
 
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -67,7 +71,11 @@ public class MainStage extends Application {
 
     private void insertPermFields() {
         if (Objects.nonNull(outputTextArea) && Objects.nonNull(templateModel.getCurrentTemplate())) {
-            configModel.getPermanentFields().forEach((k, v) -> outputTextArea.setText(outputTextArea.getText().replaceAll(Pattern.quote(k), v.getTemplateTextField())));
+            configModel.getPermanentFields().forEach((k, v) -> {
+                templateModel.getCurrentTemplate().getCurrentTemplateFieldValuesMap().put(k,v.getTemplateTextField());
+                outputTextArea.setText(outputTextArea.getText().replaceAll(Pattern.quote(k), v.getTemplateTextField()));
+            });
+
         }
     }
 
@@ -78,7 +86,7 @@ public class MainStage extends Application {
         this.mainStage.setTitle("Template Creator");
         this.mainScene = mainScene();
         this.mainStage.setScene(mainScene);
-        createAccelerators();
+        createBasicAccelerators();
         this.mainStage.setResizable(false);
         this.mainStage.show();
     }
@@ -91,7 +99,7 @@ public class MainStage extends Application {
     }
 
 
-    private void createAccelerators() {
+    private void createBasicAccelerators() {
         // ctrl+l Load template
         KeyCodeCombination kcLoadTemplate = new KeyCodeCombination(KeyCode.L, KeyCombination.CONTROL_DOWN);
         mainScene.getAccelerators().put(kcLoadTemplate, loadTemplateButton::fire);
@@ -107,9 +115,22 @@ public class MainStage extends Application {
         // ctrl+a Add all fields
         KeyCodeCombination kcAddAllFields = new KeyCodeCombination(KeyCode.A, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN);
         mainScene.getAccelerators().put(kcAddAllFields, addAllFieldsButton::fire);
-        // F1 copy specific field 1
-        // F2 copy specific field 2
-        // F3 copy specific field 3
+    }
+
+    private void createCustomHotkeys() {
+        mainScene.getAccelerators().clear();
+        createBasicAccelerators();
+        templateModel.getCurrentTemplate().getHotkeyMap().forEach((k,v)->{
+            KeyCode keyCode = KeyCode.getKeyCode(k);
+            if(keyCode != null) {
+            KeyCodeCombination keyCombination = new KeyCodeCombination(keyCode);
+                mainScene.getAccelerators().put(keyCombination, ()->{
+                    System.out.println(templateModel.getCurrentTemplate().getCurrentTemplateFieldValuesMap().get(v));
+                    clipboardContent.putString(templateModel.getCurrentTemplate().getCurrentTemplateFieldValuesMap().get(v));
+                    clipboard.setContent(clipboardContent);
+                });
+            }
+        });
     }
 
     private boolean resetOutputText() {
@@ -130,14 +151,21 @@ public class MainStage extends Application {
                 insertPermFields();
                 nodeList.forEach(node -> {
                     if (node instanceof TextField) {
-                        if (!((TextField) node).getText().equals(""))
+                        if (!((TextField) node).getText().equals("")) {
+                            templateModel.getCurrentTemplate().getCurrentTemplateFieldValuesMap().put(node.getId(), ((TextField) node).getText());
                             outputTextArea.setText(outputTextArea.getText().replaceAll(node.getId(), ((TextField) node).getText()));
+                        }
                     } else if (node instanceof TextArea) {
-                        if (!((TextArea) node).getText().equals(""))
+                        if (!((TextArea) node).getText().equals("")) {
+                            templateModel.getCurrentTemplate().getCurrentTemplateFieldValuesMap().put(node.getId(), ((TextArea) node).getText());
                             outputTextArea.setText(outputTextArea.getText().replaceAll(node.getId(), ((TextArea) node).getText()));
+                        }
                     } else if (node instanceof ChoiceBox) {
-                        if (!((ChoiceBox) node).getValue().equals(""))
+                        if (!((ChoiceBox) node).getValue().equals("")) {
+                            templateModel.getCurrentTemplate().getCurrentTemplateFieldValuesMap().put(node.getId(),((ChoiceBox) node).getValue().toString());
                             outputTextArea.setText(outputTextArea.getText().replaceAll(node.getId(), ((ChoiceBox) node).getValue().toString()));
+                        }
+
                     }
                 });
             }
@@ -168,7 +196,7 @@ public class MainStage extends Application {
         outputTextArea.setEditable(false);
         return new VBox(gridPane, outputTextArea);
     }
-
+    static HostServices Host;
     private Node createTemplateChooseGrid() {
         Label templateChoiceBoxLabel = new Label("Choose template");
         String templateDirPath = MainStage.pathMap.get(pathMapValues.TEMPLATE_DIR_PATH);
@@ -183,6 +211,19 @@ public class MainStage extends Application {
             templateChoiceBox.setValue(templateChoiceBox.getItems().get(0));
         }
 
+        Button templateFileLocationButton = new Button("Template directory");
+        templateFileLocationButton.setOnAction(e -> {
+            /*
+                Path partPath = Paths.get(templateDirPath);
+                Host = getHostServices();
+                Host.showDocument(partPath.toUri().toString());
+
+             */
+            templateModel.getCurrentTemplate().getCurrentTemplateFieldValuesMap().forEach((k,v)->{
+                System.out.println(k + ":" + v);
+            });
+        });
+
         this.loadTemplateButton = new Button("Load template");
         loadTemplateButton.setOnAction(e -> {
             if (Objects.nonNull(templateModel.getCurrentTemplate())) {
@@ -193,6 +234,7 @@ public class MainStage extends Application {
                 outputTextArea.setText(template.getTemplateText());
                 insertPermFields();
                 addFieldsToTemplateFieldLayout(template);
+                createCustomHotkeys();
             }
         });
 
@@ -209,7 +251,7 @@ public class MainStage extends Application {
         gridPane.setHgap(10);
         gridPane.setPadding(new Insets(10, 10, 10, 10));
 
-        gridPane.add(templateChoiceBoxLabel, 0, 0);
+        gridPane.add(templateFileLocationButton, 0, 0);
         gridPane.add(templateChoiceBox, 1, 0);
         gridPane.add(loadTemplateButton, 2, 0);
         gridPane.add(settingsButton, 3, 0);

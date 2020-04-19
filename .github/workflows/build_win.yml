@@ -25,5 +25,3 @@ jobs:
             GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
             FROM_BRANCH: "develop"
             TO_BRANCH: "master"
-      - name: echo step
-        run: echo "${{steps.pull.PULL_REQUEST_NUMBER}}"
