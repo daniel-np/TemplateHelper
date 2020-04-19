@@ -14,6 +14,9 @@ import java.util.regex.Pattern;
 
 public class TemplateService {
 
+    private Map<String, TemplateField> templateTextFieldMap;
+    private Map<String, List<String>> choiceMap;
+    private Map<String, String> hotkeyMap;
     public TemplateService() {
 
     }
@@ -30,14 +33,14 @@ public class TemplateService {
         // Handle fields - standard, large, permanent, multi-fields
         Map<String, TemplateField> templateTextFieldMap = parseTemplateFields(cleanTemplateText, choiceMap);
         // Permanent fields are handled on the frontend controller for now.
-        Template template = new Template(file.getPath(), file.getName(), cleanTemplateText, templateTextFieldMap);
+        Template template = new Template(file.getPath(), file.getName(), cleanTemplateText, templateTextFieldMap, hotkeyMap);
         template.setChoiceDefinitions(choiceMap);
         return template;
     }
 
-    private Map<String, TemplateField> templateTextFieldMap = new HashMap<>();
-    private Map<String, TemplateField> parseTemplateFields(String templateText, Map<String, List<String>> choiceDefinitions) {
 
+    private Map<String, TemplateField> parseTemplateFields(String templateText, Map<String, List<String>> choiceDefinitions) {
+        templateTextFieldMap = new HashMap<>();
         // Standard fields & Choice fields
         parseStandardAndChoiceFields(templateText, choiceDefinitions);
         // Large fields
@@ -101,18 +104,35 @@ public class TemplateService {
 
     private Map<String, List<String>> getDefinitionsFromTemplateText(String templateText) {
         Scanner scan = new Scanner(templateText);
-        String nextLine = scan.nextLine();
-        Map<String, List<String>> choiceMap = new HashMap<>();
-        while (scan.hasNextLine() && !nextLine.contains("#enddef")) {
-            if(!nextLine.contains("#def")) {
-                Scanner lineScanner = new Scanner(nextLine);
-                String name = lineScanner.findInLine(Pattern.compile("<{2}[a-zæøåA-ZÆØÅ0-9 ]+>{2}"));
-                choiceMap.put(name, parseChoiceDefinitions(nextLine));
+        String thisLine = scan.nextLine();
+        choiceMap = new HashMap<>();
+        while (scan.hasNextLine() && !thisLine.contains("#enddef")) {
+            if(!thisLine.contains("#def")) {
+                Scanner lineScanner = new Scanner(thisLine);
+                if (thisLine.charAt(0) == '<') {
+                    String name = lineScanner.findInLine(Pattern.compile("<{2}[a-zæøåA-ZÆØÅ0-9 ]+>{2}"));
+                    choiceMap.put(name, parseChoiceDefinitions(thisLine));
+                } else if(thisLine.charAt(0) == '*') {
+                    parseHotkeyValues(thisLine);
+                }
             }
-            nextLine = scan.nextLine();
+            thisLine = scan.nextLine();
         }
         scan.close();
         return choiceMap;
+    }
+
+    private Map<String, String> parseHotkeyValues(String line) {
+        if(hotkeyMap == null) {
+            hotkeyMap = new HashMap<>();
+        }
+        String[] stringSplit = line.substring(1).split("=");
+        hotkeyMap.put(stringSplit[0], stringSplit[1]);
+        return hotkeyMap;
+    }
+
+    public Map<String, String> getHotkeyMap() {
+        return hotkeyMap;
     }
 
     private List<String> parseChoiceDefinitions(String line) {

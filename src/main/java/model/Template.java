@@ -1,18 +1,40 @@
 package model;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class Template {
     private String name, location, templateText;
     private Map<String, TemplateField> templateFields;
+    private Map<String, String> currentTemplateFieldValuesMap;
     private Map<String, List<String>> choiceDefinitions;
+    private Map<String, String> hotkeyMap;
 
     public Template(String name, String location, String templateText, Map<String, TemplateField> templateFields) {
         this.name = name;
         this.location = location;
         this.templateFields = templateFields;
         this.templateText = templateText;
+        createCurentTemplateFieldValuesMap();
+    }
+
+    public Template(String name, String location, String templateText, Map<String, TemplateField> templateFields, Map<String, String> hotkeyMap) {
+        this.name = name;
+        this.location = location;
+        this.templateFields = templateFields;
+        this.templateText = templateText;
+        this.hotkeyMap = hotkeyMap;
+        createCurentTemplateFieldValuesMap();
+    }
+
+    private void createCurentTemplateFieldValuesMap() {
+        currentTemplateFieldValuesMap = new HashMap<>();
+        templateFields.forEach((k,v)-> currentTemplateFieldValuesMap.put(k,k));
+    }
+
+    public Map<String, String> getCurrentTemplateFieldValuesMap() {
+        return currentTemplateFieldValuesMap;
     }
 
     public String getName() {
@@ -47,6 +69,10 @@ public class Template {
         this.templateText = templateText;
     }
 
+    public Map<String, String> getHotkeyMap() {
+        return hotkeyMap;
+    }
+
     @Override
     public String toString() {
 
@@ -62,4 +88,5 @@ public class Template {
     public void setChoiceDefinitions(Map<String, List<String>> choiceDefinitions) {
         this.choiceDefinitions = choiceDefinitions;
     }
+
 }
