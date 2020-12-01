@@ -50,7 +50,6 @@ Defined within the ```#def``` and ```#endef``` field at the top of the file
 #def
 *F1=<!content!>
 *F2=<<day>>
-*F1=<!content!>
 #enddef
 ````
 <a name="example"></a>
@@ -60,7 +59,6 @@ Defined within the ```#def``` and ```#endef``` field at the top of the file
 <<day>>=Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday
 *F1=<!content!>
 *F2=<<day>>
-*F1=<!content!>
 #enddef
 Hi I'm <$nameField$>,
 
